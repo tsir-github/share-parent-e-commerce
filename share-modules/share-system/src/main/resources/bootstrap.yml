@@ -1,0 +1,37 @@
+# Tomcat
+server:
+  port: 9201
+
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: share-system
+  profiles:
+    # 环境配置
+    active: dev
+  main:
+    allow-bean-definition-overriding: true #当遇到同样名字的时候，是否允许覆盖注册
+  data:
+    redis:
+      host: 192.168.10.129
+      port: 6379
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: 192.168.10.129:8848
+        namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+      config:
+        # 配置中心地址
+        server-addr: 192.168.10.129:8848
+        namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+        # 配置文件格式
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
