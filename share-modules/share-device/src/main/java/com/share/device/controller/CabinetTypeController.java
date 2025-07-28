@@ -31,7 +31,7 @@ public class CabinetTypeController extends BaseController
 
     @Operation(summary = "删除柜机类型")
     @DeleteMapping("/{ids}")
-    public AjaxResult delete(@PathVariable Long[] ids){
+    public AjaxResult delete(@PathVariable Long[] ids){//拿到前端传过来的json数据，是个数组
         boolean is_Success = cabinetTypeService.removeBatchByIds(Arrays.asList(ids));//数组变集合
         AjaxResult ajaxResult = toAjax(is_Success);
         return ajaxResult;
@@ -70,6 +70,7 @@ public class CabinetTypeController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(CabinetType cabinetType)
     {
+        //分页查询返回TableDataInfo，普通就返回AjaxResult
         //分装分页参数数据
         startPage();
         //调用service查询数据库

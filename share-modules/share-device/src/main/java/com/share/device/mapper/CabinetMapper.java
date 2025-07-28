@@ -3,8 +3,11 @@ package com.share.device.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.share.device.domain.Cabinet;
 
+import java.util.List;
+
 public interface CabinetMapper extends BaseMapper<Cabinet>
 {
+    List<Cabinet> selectCabinetList(Cabinet cabinet);
 
     /**
      * 查询充电宝柜机列表
