@@ -8,6 +8,7 @@ import com.share.device.service.IRegionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -39,6 +40,23 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> impleme
 
         return regionList;
         //return baseMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public String getNameByCode(String code) {
+        if (StringUtils.isEmpty(code)) {
+            return "";
+        }
+        LambdaQueryWrapper<Region> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Region::getCode, code);
+        // 选择Region实体的name字段进行查询
+        queryWrapper.select(Region::getName);
+        Region region = regionMapper.selectOne(queryWrapper);
+        if(null != region) {
+            return region.getName();
+        }
+        return "";
+
     }
 }
 

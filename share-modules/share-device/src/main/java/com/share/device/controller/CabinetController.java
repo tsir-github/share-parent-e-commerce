@@ -60,6 +60,12 @@ public class CabinetController extends BaseController {
         //return success(byId);
     }
 
+    @Operation(summary = "获取充电宝柜机全部详细信息")
+    @GetMapping(value = "/getAllInfo/{id}")
+    public AjaxResult getAllInfo(@PathVariable("id") Long id){
+
+        return success(cabinetService.getAllInfo(id));
+    }
     //分页查询
     @Operation(summary = "查询充电宝柜机列表")
     @GetMapping("/list")

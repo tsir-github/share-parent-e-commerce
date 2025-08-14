@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import com.share.common.security.annotation.EnableRyFeignClients;
 
+
 /**
  * 认证授权中心
  *
@@ -12,6 +13,7 @@ import com.share.common.security.annotation.EnableRyFeignClients;
  */
 @EnableRyFeignClients
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
+//@ComponentScan(basePackages = {"com.share"})
 public class ShareAuthApplication
 {
     public static void main(String[] args)

@@ -288,7 +288,11 @@
         <module>share-modules</module>
         <module>share-api</module>
         <module>share-common</module>
-        <module>share-modules/share-device</module>
+        <!--<module>share-modules/share-device</module>
+        <module>share-modules/share-rule</module>
+        <module>share-modules/share-user</module>-->
+        <module>share-api/share-api-user</module>
+        <module>share-api/share-api-rule</module>
     </modules>
     <packaging>pom</packaging>
 

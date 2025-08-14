@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface IRegionService extends IService<Region> {
     List<Region> treeSelect(String code);
+
+    String getNameByCode(String code);
 }

@@ -3,6 +3,7 @@ package com.share.gateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * 网关启动程序
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * @author share
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
+//@ComponentScan(basePackages = {"com.share"})
 public class ShareGatewayApplication
 {
     public static void main(String[] args)

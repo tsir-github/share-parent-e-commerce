@@ -5,6 +5,8 @@ import com.share.common.core.web.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Schema(description = "充电宝柜机")
 public class Cabinet extends BaseEntity
@@ -55,4 +57,13 @@ public class Cabinet extends BaseEntity
     @TableField(exist = false)//标识非数据库字段,当实体类的某个字段
     // 不需要与数据库表的列映射 时，使用此注解明确标记
     private String cabinetTypeName;
+
+    //批量查询字段
+    @TableField(exist = false)//标识非数据库字段
+    private List<Long> ids;
+
+    public void setIds(List<Long> ids) {
+        this.ids = ids;
+    }
+
 }

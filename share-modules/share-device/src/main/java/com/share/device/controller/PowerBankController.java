@@ -4,6 +4,7 @@ import com.share.common.core.web.controller.BaseController;
 
 import com.share.common.core.web.domain.AjaxResult;
 import com.share.common.core.web.page.TableDataInfo;
+import com.share.common.security.annotation.RequiresPermissions;
 import com.share.common.security.utils.SecurityUtils;
 import com.share.device.domain.PowerBank;
 import com.share.device.service.IPowerBankService;
@@ -44,6 +45,7 @@ public class PowerBankController extends BaseController {
 
     //添加
     @Operation(summary = "新增充电宝")
+    @RequiresPermissions("device:powerBank:add")
     @PostMapping
     public AjaxResult add(@RequestBody PowerBank powerBank){
         //设置相关数据的值

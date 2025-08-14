@@ -4,7 +4,9 @@ import com.share.common.security.annotation.EnableCustomConfig;
 import com.share.common.security.annotation.EnableRyFeignClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -15,6 +17,12 @@ import org.springframework.web.client.RestTemplate;
 @EnableCustomConfig
 @EnableRyFeignClients
 @SpringBootApplication
+//@ComponentScan(basePackages = {"com.share.rules"})
+@EnableFeignClients(basePackages = {
+        "com.share.system.api",  // 添加系统API包扫描
+        "com.share.device.feign", // 原有设备Feign扫描
+        "com.share.rule.api"// 添加规则API包扫描
+})
 public class ShareDeviceApplication
 {
     public static void main(String[] args)

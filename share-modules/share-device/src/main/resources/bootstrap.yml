@@ -27,3 +27,8 @@ spring:
         # 共享配置
         shared-configs:
           - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+  #datasource:
+  #  device:
+  #    url: jdbc:mysql://192.168.10.129:3306/share-device
+  #  rule:
+  #    url: jdbc:mysql://192.168.10.129:3306/share-rule

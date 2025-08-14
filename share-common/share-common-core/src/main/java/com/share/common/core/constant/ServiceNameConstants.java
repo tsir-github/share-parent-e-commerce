@@ -21,4 +21,8 @@ public class ServiceNameConstants
      * 文件服务的serviceid
      */
     public static final String FILE_SERVICE = "share-file";
+
+
+    //微信登录
+    public static final String SHARE_USER = "share-user";
 }
