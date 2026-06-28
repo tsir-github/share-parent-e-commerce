@@ -48,9 +48,19 @@ BOOT-INF/
 META-INF/
 org/
 
-### Dev tools
+### Dev tools / docs（非业务代码，不上生产仓库）
 .opencode/
 .sisyphus/
+.specify/
+AGENTS.md
+docs/
+notes.md
+specs/
+sql/
+middleware/
+LICENSE
+README.md
+share-parent-*.*
 .session/
 sessionStore/
 opencode*.tgz
