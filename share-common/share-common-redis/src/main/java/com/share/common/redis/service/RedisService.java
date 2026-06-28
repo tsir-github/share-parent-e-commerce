@@ -11,7 +11,7 @@ import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.stereotype.Component;
+
 
 /**
  * spring redis 工具类
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
  * @author share
  **/
 @SuppressWarnings(value = { "unchecked", "rawtypes" })
-@Component
 public class RedisService
 {
     @Autowired

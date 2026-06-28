@@ -2,20 +2,23 @@ package com.share.user.config;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.api.impl.WxMaServiceImpl;
-import cn.binarywang.wx.miniapp.config.impl.WxMaDefaultConfigImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
-@Component
+@Configuration
+@EnableConfigurationProperties(WxProperties.class)
 public class WxMaConfig {
 
-    @Autowired
-    private WxProperties wxMaProperties;
+    private final WxProperties wxMaProperties;
+
+    public WxMaConfig(WxProperties wxMaProperties) {
+        this.wxMaProperties = wxMaProperties;
+    }
 
     @Bean
     public WxMaService wxMaService() {
-        WxMaDefaultConfigImpl config = new WxMaDefaultConfigImpl();
+        SafeWxMaDefaultConfigImpl config = new SafeWxMaDefaultConfigImpl();
         config.setAppid(wxMaProperties.getAppId());
         config.setSecret(wxMaProperties.getSecret());
 

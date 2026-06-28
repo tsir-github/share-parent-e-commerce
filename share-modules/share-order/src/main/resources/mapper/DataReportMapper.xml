@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.share.order.mapper.DataReportMapper">
+
+    <!-- ======================== 交易总览 ======================== -->
+    <select id="selectOverview" resultType="java.util.Map">
+        SELECT
+            COALESCE(t1.cnt, 0)  AS todayOrderCount,
+            COALESCE(t1.rev, 0)  AS todayRevenue,
+            COALESCE(t1.avg, 0)  AS todayAvgOrderAmount,
+            COALESCE(t1.ref, 0)  AS todayRefundAmount,
+            COALESCE(t2.cnt, 0)  AS weekOrderCount,
+            COALESCE(t2.rev, 0)  AS weekRevenue,
+            COALESCE(t3.cnt, 0)  AS monthOrderCount,
+            COALESCE(t3.rev, 0)  AS monthRevenue,
+            COALESCE(t4.cnt, 0)  AS totalOrders,
+            COALESCE(t4.rev, 0)  AS totalRevenue
+        FROM (SELECT 1) dummy
+        LEFT JOIN (
+            SELECT
+                COUNT(*)                                                           AS cnt,
+                COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev,
+                CASE WHEN COUNT(*) > 0
+                     THEN COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) / COUNT(*)
+                     ELSE 0 END                                                    AS avg,
+                COALESCE(SUM(refund_amount), 0)                                    AS ref
+            FROM share_order.order_info
+            WHERE DATE(create_time) = CURDATE() AND del_flag = '0'
+        ) t1 ON 1=1
+        LEFT JOIN (
+            SELECT
+                COUNT(*)                                                           AS cnt,
+                COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev
+            FROM share_order.order_info
+            WHERE YEARWEEK(create_time, 1) = YEARWEEK(CURDATE(), 1)
+              AND del_flag = '0'
+        ) t2 ON 1=1
+        LEFT JOIN (
+            SELECT
+                COUNT(*)                                                           AS cnt,
+                COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev
+            FROM share_order.order_info
+            WHERE DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+              AND del_flag = '0'
+        ) t3 ON 1=1
+        LEFT JOIN (
+            SELECT
+                COUNT(*)                                                           AS cnt,
+                COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev
+            FROM share_order.order_info
+            WHERE del_flag = '0'
+        ) t4 ON 1=1
+    </select>
+
+    <!-- ======================== 订单趋势 ======================== -->
+    <select id="selectTrend" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(create_time, '%Y-%m-%d') AS date,
+            COUNT(*)                             AS orderCount,
+            COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS revenue
+        FROM share_order.order_info
+        WHERE del_flag = '0'
+            AND create_time &gt;= #{startDate}
+            AND create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY date
+    </select>
+
+    <!-- ======================== 商品销售排行 ======================== -->
+    <select id="selectProductRanking" resultType="java.util.Map">
+        SELECT
+            oi.product_id    AS productId,
+            oi.product_name  AS productName,
+            SUM(oi.quantity) AS salesCount,
+            COALESCE(SUM(oi.total_amount), 0) AS revenue
+        FROM share_order.order_item oi
+        JOIN share_order.order_info o ON oi.order_id = o.id AND o.del_flag = '0'
+        WHERE oi.del_flag = '0'
+          AND o.pay_status = '1'
+          <if test="startDate != null and startDate != ''">
+              AND o.create_time &gt;= #{startDate}
+          </if>
+          <if test="endDate != null and endDate != ''">
+              AND o.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+          </if>
+        GROUP BY oi.product_id, oi.product_name
+        ORDER BY
+          <if test="sortBy == 'revenue'">revenue</if>
+          <if test="sortBy != 'revenue'">salesCount</if>
+          DESC
+        <if test="topN != null and topN > 0">
+            LIMIT #{topN}
+        </if>
+    </select>
+
+    <!-- ======================== 商家销售排行 ======================== -->
+    <select id="selectMerchantRanking" resultType="java.util.Map">
+        SELECT
+            oi.merchant_id       AS merchantId,
+            COALESCE(mi.name, '未知商家') AS merchantName,
+            COUNT(DISTINCT oi.order_id) AS orderCount,
+            COALESCE(SUM(oi.total_amount), 0) AS revenue
+        FROM share_order.order_item oi
+        JOIN share_order.order_info o ON oi.order_id = o.id AND o.del_flag = '0'
+        LEFT JOIN share_merchant.merchant_info mi ON oi.merchant_id = mi.id
+        WHERE oi.del_flag = '0'
+          AND o.pay_status = '1'
+          <if test="startDate != null and startDate != ''">
+              AND o.create_time &gt;= #{startDate}
+          </if>
+          <if test="endDate != null and endDate != ''">
+              AND o.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+          </if>
+        GROUP BY oi.merchant_id, mi.name
+        ORDER BY revenue DESC
+        <if test="topN != null and topN > 0">
+            LIMIT #{topN}
+        </if>
+    </select>
+
+    <!-- ======================== 支付统计 ======================== -->
+    <select id="selectPaymentStats" resultType="java.util.Map">
+        SELECT
+            pay_way       AS payWay,
+            CASE pay_way
+                WHEN 0 THEN '微信支付'
+                ELSE CONCAT('支付方式(', pay_way, ')')
+            END           AS payWayName,
+            COUNT(*)      AS orderCount,
+            COALESCE(SUM(amount), 0) AS amount
+        FROM share_payment.payment_info
+        WHERE del_flag = '0'
+          AND payment_status = 1  /* 支付成功 */
+          <if test="startDate != null and startDate != ''">
+              AND create_time &gt;= #{startDate}
+          </if>
+          <if test="endDate != null and endDate != ''">
+              AND create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+          </if>
+        GROUP BY pay_way
+        ORDER BY amount DESC
+    </select>
+
+</mapper>

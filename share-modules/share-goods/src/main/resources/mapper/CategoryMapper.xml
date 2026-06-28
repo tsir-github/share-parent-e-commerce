@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.share.goods.mapper.CategoryMapper">
+
+    <resultMap type="com.share.goods.domain.Category" id="CategoryResult" autoMapping="true">
+    </resultMap>
+
+    <sql id="selectCategoryVo">
+        select id, parent_id, name, icon, image, sort, status, ext_json,
+               create_by, create_time, update_by, update_time, del_flag, remark
+        from category
+    </sql>
+
+    <select id="selectCategoryList" parameterType="com.share.goods.domain.Category" resultMap="CategoryResult">
+        <include refid="selectCategoryVo"/>
+        <where>
+            <if test="name != null and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="parentId != null"> and parent_id = #{parentId}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+            and del_flag = 0
+        </where>
+        order by sort asc
+    </select>
+
+</mapper>

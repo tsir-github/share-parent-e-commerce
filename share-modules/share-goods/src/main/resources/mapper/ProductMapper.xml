@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.share.goods.mapper.ProductMapper">
+
+    <resultMap type="com.share.goods.domain.Product" id="ProductResult" autoMapping="true">
+    </resultMap>
+
+    <sql id="selectProductVo">
+        select id, category_id, merchant_id, name, subtitle, description, main_image, unit,
+               min_price, max_price, total_stock, sales, status, is_new, is_hot,
+               ext_json, create_by, create_time, update_by, update_time, del_flag, remark
+        from product
+    </sql>
+
+    <select id="selectProductList" parameterType="com.share.goods.domain.Product" resultMap="ProductResult">
+        <include refid="selectProductVo"/>
+        <where>
+            <if test="categoryId != null"> and category_id = #{categoryId}</if>
+            <if test="merchantId != null"> and merchant_id = #{merchantId}</if>
+            <if test="name != null and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+            <if test="isNew != null and isNew != ''"> and is_new = #{isNew}</if>
+            <if test="isHot != null and isHot != ''"> and is_hot = #{isHot}</if>
+            and del_flag = 0
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="searchProducts" resultMap="ProductResult">
+        <include refid="selectProductVo"/>
+        <where>
+            and status = '0'
+            and del_flag = 0
+            <if test="keyword != null and keyword != ''">
+                and (name like concat('%', #{keyword}, '%') or subtitle like concat('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="minPrice != null">
+                and max_price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                and min_price &lt;= #{maxPrice}
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'sales'">
+                order by sales desc
+            </when>
+            <when test="sortBy == 'price_asc'">
+                order by min_price asc
+            </when>
+            <when test="sortBy == 'price_desc'">
+                order by min_price desc
+            </when>
+            <otherwise>
+                order by create_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

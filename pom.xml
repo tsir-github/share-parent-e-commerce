@@ -16,9 +16,9 @@
         <share.version>3.6.3</share.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>17</java.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <spring-boot.version>3.0.5</spring-boot.version>
         <spring-cloud.version>2022.0.2</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
@@ -40,11 +40,9 @@
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <lombok.version>1.18.30</lombok.version>
         <redisson.version>3.23.3</redisson.version>
+        <rocketmq.version>2.3.0</rocketmq.version>
         <wxpay.version>0.2.11</wxpay.version>
         <weixin.miniapp.version>4.5.5.B</weixin.miniapp.version>
-        <drools.version>8.41.0.Final</drools.version>
-        <mqttv3.version>1.2.2</mqttv3.version>
-        <redisson.version>3.23.3</redisson.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -190,12 +188,51 @@
                 <version>${share.version}</version>
             </dependency>
 
+            <!-- RocketMQ 消息队列 -->
+            <dependency>
+                <groupId>com.share</groupId>
+                <artifactId>share-common-rocketmq</artifactId>
+                <version>${share.version}</version>
+            </dependency>
+
             <!-- 系统接口 -->
             <dependency>
                 <groupId>com.share</groupId>
                 <artifactId>share-api-system</artifactId>
                 <version>${share.version}</version>
             </dependency>
+
+            <!-- 业务 Feign 接口 -->
+            <dependency>
+                <groupId>com.share</groupId>
+                <artifactId>share-api-goods</artifactId>
+                <version>${share.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.share</groupId>
+                <artifactId>share-api-order</artifactId>
+                <version>${share.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.share</groupId>
+                <artifactId>share-api-payment</artifactId>
+                <version>${share.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.share</groupId>
+                <artifactId>share-api-coupon</artifactId>
+                <version>${share.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.share</groupId>
+            <artifactId>share-api-user</artifactId>
+            <version>${share.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.share</groupId>
+            <artifactId>share-api-merchant</artifactId>
+            <version>${share.version}</version>
+        </dependency>
 
             <!--knife4j-->
             <dependency>
@@ -243,43 +280,35 @@
                 <version>5.8.16</version>
             </dependency>
 
-            <!-- drools lib -->
+            <!-- RocketMQ 消息队列 -->
             <dependency>
-                <groupId>org.drools</groupId>
-                <artifactId>drools-core</artifactId>
-                <version>${drools.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.drools</groupId>
-                <artifactId>drools-compiler</artifactId>
-                <version>${drools.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.drools</groupId>
-                <artifactId>drools-decisiontables</artifactId>
-                <version>${drools.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.drools</groupId>
-                <artifactId>drools-mvel</artifactId>
-                <version>${drools.version}</version>
-            </dependency>
-
-            <!-- mqttv3 -->
-            <dependency>
-                <groupId>org.eclipse.paho</groupId>
-                <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-                <version>${mqttv3.version}</version>
-            </dependency>
-
-            <!-- redisson -->
-            <dependency>
-                <groupId>org.redisson</groupId>
-                <artifactId>redisson</artifactId>
-                <version>${redisson.version}</version>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <modules>
         <module>share-auth</module>
@@ -288,11 +317,6 @@
         <module>share-modules</module>
         <module>share-api</module>
         <module>share-common</module>
-        <!--<module>share-modules/share-device</module>
-        <module>share-modules/share-rule</module>
-        <module>share-modules/share-user</module>-->
-        <module>share-api/share-api-user</module>
-        <module>share-api/share-api-rule</module>
     </modules>
     <packaging>pom</packaging>
 

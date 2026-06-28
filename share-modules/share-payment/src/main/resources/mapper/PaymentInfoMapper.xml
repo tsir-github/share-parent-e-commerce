@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.share.payment.mapper.PaymentInfoMapper">
+
+    <resultMap id="PaymentInfoResult" type="com.share.payment.domain.PaymentInfo">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="payWay" column="pay_way"/>
+        <result property="transactionId" column="transaction_id"/>
+        <result property="amount" column="amount"/>
+        <result property="content" column="content"/>
+        <result property="paymentStatus" column="payment_status"/>
+        <result property="callbackTime" column="callback_time"/>
+        <result property="callbackContent" column="callback_content"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectPaymentInfoVo">
+        SELECT id, user_id, order_no, pay_way, transaction_id, amount, content,
+               payment_status, callback_time, callback_content, remark,
+               create_time, create_by, update_time, update_by, del_flag
+        FROM payment_info
+    </sql>
+
+    <select id="selectPaymentInfoList" resultMap="PaymentInfoResult">
+        <include refid="selectPaymentInfoVo"/>
+        <where>
+            del_flag = '0'
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="paymentStatus != null">
+                AND payment_status = #{paymentStatus}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="payWay != null">
+                AND pay_way = #{payWay}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND create_time &gt;= #{params.beginTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND create_time &lt;= #{params.endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

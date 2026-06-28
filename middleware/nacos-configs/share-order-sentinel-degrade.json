@@ -1,0 +1,10 @@
+[
+  {
+    "resource": "createOrder",
+    "grade": 0,
+    "count": 10,
+    "timeWindow": 15,
+    "minRequestAmount": 5,
+    "statIntervalMs": 10000
+  }
+]

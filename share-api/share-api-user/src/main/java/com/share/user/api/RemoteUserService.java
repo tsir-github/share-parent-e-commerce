@@ -29,5 +29,5 @@ public interface RemoteUserService
 
     /////////////
     @GetMapping("/userInfo/getUserCount")
-    public R getUserCount();
+    public R<Map<String,Object>> getUserCount();
 }

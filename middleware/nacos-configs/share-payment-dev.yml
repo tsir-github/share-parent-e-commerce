@@ -1,0 +1,74 @@
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  type-aliases-package: com.share.**.domain
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: flag
+      logic-delete-value: 2
+      logic-not-delete-value: 0
+spring:
+  redis:
+    sentinel:
+      master: mymaster
+      nodes: 192.168.10.129:26379,192.168.10.129:26380,192.168.10.129:26381
+    password: ShareRedis2024!
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.10.129:3306/share-payment?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: root
+    hikari:
+      connection-test-query: SELECT 1
+      connection-timeout: 60000
+      idle-timeout: 500000
+      max-lifetime: 540000
+      maximum-pool-size: 10
+      minimum-idle: 5
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:8718
+        port: 8719
+      datasource:
+        ds-flow:
+          nacos:
+            server-addr: 192.168.10.129:8848
+            namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+            data-id: ${spring.application.name}-sentinel-flow.json
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: flow
+        ds-degrade:
+          nacos:
+            server-addr: 192.168.10.129:8848
+            namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+            data-id: ${spring.application.name}-sentinel-degrade.json
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: degrade
+wx:
+  pay:
+    v3:
+      mock-mode: true
+      app-id: wx8c3d04e2ee0852bc
+      mch-id: 1631833859
+      api-key: xxxxx
+      cert-serial: xxxxx
+      private-key-path: /usr/local/share-payment/cert/apiclient_key.pem
+      notify-url: https://your-domain.com/prod-api/payment/api/v1/payment/callback
+rocketmq:
+  name-server: 192.168.10.129:9876
+  producer:
+    group: share-payment-producer
+seata:
+  application-id: share-payment
+  tx-service-group: share-payment-group
+  registry:
+    type: nacos
+    nacos:
+      server-addr: 192.168.10.129:8848
+      namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+      cluster: default

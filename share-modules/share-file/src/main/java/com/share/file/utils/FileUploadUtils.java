@@ -94,7 +94,7 @@ public class FileUploadUtils
     public static final String extractFilename(MultipartFile file)
     {
         return StringUtils.format("{}/{}_{}.{}", DateUtils.datePath(),
-                FilenameUtils.getBaseName(file.getOriginalFilename()), Seq.getId(Seq.uploadSeqType), FileTypeUtils.getExtension(file));
+                FilenameUtils.getBaseName(file.getOriginalFilename()), Seq.getId(), FileTypeUtils.getExtension(file));
     }
 
     private static final File getAbsoluteFile(String uploadDir, String fileName) throws IOException

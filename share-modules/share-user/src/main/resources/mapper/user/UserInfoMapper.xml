@@ -24,4 +24,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </where>
     </select>
 
+    <!-- 新增用户趋势（按天聚合，默认近30天） -->
+    <select id="selectNewUserTrend" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(create_time, '%Y-%m-%d') AS date,
+            COUNT(*) AS newUserCount
+        FROM user_info
+        WHERE del_flag = '0'
+          <if test="startDate != null and startDate != ''">
+              AND create_time &gt;= #{startDate}
+          </if>
+          <if test="startDate == null or startDate == ''">
+              AND create_time &gt;= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+          </if>
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY date
+    </select>
+
+    <!-- 活跃用户数（最近30天有登录记录） -->
+    <select id="countActiveUsers" resultType="int">
+        SELECT COUNT(DISTINCT user_id)
+        FROM user_login_log
+        WHERE login_time &gt;= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    </select>
+
 </mapper>

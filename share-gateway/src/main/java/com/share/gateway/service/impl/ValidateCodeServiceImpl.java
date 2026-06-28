@@ -17,8 +17,6 @@ import com.share.common.core.utils.uuid.IdUtils;
 import com.share.common.core.web.domain.AjaxResult;
 import com.share.common.redis.service.RedisService;
 import com.share.gateway.config.properties.CaptchaProperties;
-import com.share.gateway.service.ValidateCodeService;
-
 import javax.imageio.ImageIO;
 
 /**
@@ -27,7 +25,7 @@ import javax.imageio.ImageIO;
  * @author share
  */
 @Service
-public class ValidateCodeServiceImpl implements ValidateCodeService
+public class ValidateCodeServiceImpl
 {
     @Resource(name = "captchaProducer")
     private Producer captchaProducer;
@@ -44,7 +42,6 @@ public class ValidateCodeServiceImpl implements ValidateCodeService
     /**
      * 生成验证码
      */
-    @Override
     public AjaxResult createCaptcha() throws IOException, CaptchaException
     {
         AjaxResult ajax = AjaxResult.success();
@@ -97,7 +94,6 @@ public class ValidateCodeServiceImpl implements ValidateCodeService
     /**
      * 校验验证码
      */
-    @Override
     public void checkCaptcha(String code, String uuid) throws CaptchaException
     {
         if (StringUtils.isEmpty(code))

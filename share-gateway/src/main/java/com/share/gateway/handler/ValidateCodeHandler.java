@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import com.share.common.core.exception.CaptchaException;
 import com.share.common.core.web.domain.AjaxResult;
-import com.share.gateway.service.ValidateCodeService;
+import com.share.gateway.service.impl.ValidateCodeServiceImpl;
 import reactor.core.publisher.Mono;
 
 /**
@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 public class ValidateCodeHandler implements HandlerFunction<ServerResponse>
 {
     @Autowired
-    private ValidateCodeService validateCodeService;
+    private ValidateCodeServiceImpl validateCodeService;
 
     @Override
     public Mono<ServerResponse> handle(ServerRequest serverRequest)

@@ -1,0 +1,34 @@
+# Tomcat
+server:
+  port: 9211
+
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: share-order
+  profiles:
+    # 环境配置
+    active: dev
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: 192.168.10.129:8848
+        namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+      config:
+        # 配置中心地址
+        server-addr: 192.168.10.129:8848
+        namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+        # 配置文件格式
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+        # 扩展配置（显式指定 dataId，解决 profile 不自动拼接的问题）
+        extension-configs:
+          - data-id: share-order-dev.yml
+            group: DEFAULT_GROUP
+            refresh: true

@@ -2,11 +2,13 @@ package com.share.user.controller;
 
 import java.util.List;
 import java.util.Arrays;
+import java.util.Map;
 
+import com.share.common.core.domain.R;
 import com.share.common.log.annotation.Log;
 import com.share.user.domain.UserInfo;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -34,10 +36,10 @@ import com.share.common.core.web.page.TableDataInfo;
 @Tag(name = "用户接口管理")
 @RestController
 @RequestMapping("/userInfo")
+@RequiredArgsConstructor
 public class UserInfoController extends BaseController
 {
-    @Autowired
-    private IUserInfoService userInfoService;
+    private final IUserInfoService userInfoService;
 
     /**
      * 查询用户列表
@@ -107,9 +109,29 @@ public class UserInfoController extends BaseController
     @Operation(summary = "删除用户")
     @RequiresPermissions("user:userInfo:remove")
     @Log(title = "用户", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{ids}")
+    @DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)
     {
         return toAjax(userInfoService.removeBatchByIds(Arrays.asList(ids)));
+    }
+
+    /**
+     * 用户仪表盘统计数据
+     */
+    @Operation(summary = "用户仪表盘统计")
+    @RequiresPermissions("user:userInfo:list")
+    @GetMapping("/dashboard")
+    public R<Map<String, Object>> dashboard() {
+        return R.ok(userInfoService.getDashboardStats());
+    }
+
+    /**
+     * 用户统计数据（平台报表用）
+     */
+    @Operation(summary = "用户统计数据")
+    @RequiresPermissions("user:report:statistics")
+    @GetMapping("/statistics")
+    public AjaxResult statistics() {
+        return success(userInfoService.getUserStatistics());
     }
 }

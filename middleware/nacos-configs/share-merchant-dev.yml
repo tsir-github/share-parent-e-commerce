@@ -1,0 +1,59 @@
+# 数据源配置
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.10.129:3306/share-merchant?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: root
+    hikari:
+      connection-test-query: SELECT 1
+      connection-timeout: 60000
+      maximum-pool-size: 10
+      minimum-idle: 5
+  redis:
+    sentinel:
+      master: mymaster
+      nodes: 192.168.10.129:26379,192.168.10.129:26380,192.168.10.129:26381
+    password: ShareRedis2024!
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:8718
+        port: 8719
+      datasource:
+        ds-flow:
+          nacos:
+            server-addr: 192.168.10.129:8848
+            namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+            data-id: ${spring.application.name}-sentinel-flow.json
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: flow
+        ds-degrade:
+          nacos:
+            server-addr: 192.168.10.129:8848
+            namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+            data-id: ${spring.application.name}-sentinel-degrade.json
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: degrade
+
+mybatis-plus:
+  typeAliasesPackage: com.share.merchant.domain
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+
+swagger:
+  title: 商家模块接口文档
+  license: share
+  licenseUrl: https://www.share.vip
+
+seata:
+  application-id: share-merchant
+  tx-service-group: share-merchant-group
+  registry:
+    type: nacos
+    nacos:
+      server-addr: 192.168.10.129:8848
+      namespace: a746e297-417e-4aec-bfb1-e42df33fbe93
+      cluster: default

@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.share.common.security.annotation.EnableCustomConfig;
 import com.share.common.security.annotation.EnableRyFeignClients;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * 系统模块
@@ -14,6 +15,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 @RefreshScope // 添加此注解即时生效技巧,添加@RefreshScope到需要动态刷新的Bean
 @EnableCustomConfig
 @EnableRyFeignClients
+@ComponentScan(basePackages = {"com.share"})
 @SpringBootApplication
 public class ShareSystemApplication
 {

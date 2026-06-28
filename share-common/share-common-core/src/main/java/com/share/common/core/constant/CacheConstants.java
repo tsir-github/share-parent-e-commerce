@@ -56,4 +56,20 @@ public class CacheConstants
      * 登录IP黑名单 cache key
      */
     public static final String SYS_LOGIN_BLACKIPLIST = SYS_CONFIG_KEY + "sys.login.blackIPList";
+
+    // ==================== 业务缓存 key ====================
+
+    /** 商品详情缓存（读多写少，30min TTL） */
+    public static final String PRODUCT_DETAIL_KEY = "product:detail:";
+
+    /** 分类树缓存（几乎不变，1h TTL） */
+    public static final String CATEGORY_TREE_KEY = "category:tree";
+
+    /** 分类列表缓存 */
+    public static final String CATEGORY_LIST_KEY = "category:list";
+
+    // ==================== 幂等 Token ====================
+
+    /** 幂等 Token 缓存前缀（5min TTL，单次有效） */
+    public static final String IDEMPOTENT_TOKEN_KEY = "idempotent:token:";
 }

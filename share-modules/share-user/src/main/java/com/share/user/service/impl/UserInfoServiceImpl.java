@@ -9,13 +9,24 @@ import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.share.common.core.context.SecurityContextHolder;
-import com.share.user.domain.UserCountVo;
+import com.share.user.domain.vo.UserCountVo;
+import com.share.user.domain.vo.UserVo;
 import com.share.user.domain.UserInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.share.common.core.domain.R;
+import com.share.common.core.exception.ServiceException;
+import com.share.common.core.utils.StringUtils;
+import com.share.common.security.service.TokenService;
+import com.share.common.security.utils.SecurityUtils;
+import com.share.system.api.RemoteFileService;
+import com.share.system.api.domain.SysFile;
+import com.share.system.api.model.LoginUser;
+import com.share.user.domain.dto.WxLoginResultDTO;
 import com.share.user.mapper.UserInfoMapper;
 import com.share.user.service.IUserInfoService;
+import org.springframework.web.multipart.MultipartFile;
 /**
  * 用户Service业务层处理
  *
@@ -23,13 +34,13 @@ import com.share.user.service.IUserInfoService;
  * @date 2025-02-17
  */
 @Service
+@RequiredArgsConstructor
 public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements IUserInfoService
 {
-    @Autowired
-    private UserInfoMapper userInfoMapper;
-
-    @Autowired
-    private WxMaService wxMaService;
+    private final UserInfoMapper userInfoMapper;
+    private final WxMaService wxMaService;
+    private final RemoteFileService remoteFileService;
+    private final TokenService tokenService;
 
     /**
      * 查询用户列表
@@ -37,7 +48,6 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
      * @param userInfo 用户
      * @return 用户
      */
-    @Override
     public List<UserInfo> selectUserInfoList(UserInfo userInfo)
     {
         return userInfoMapper.selectUserInfoList(userInfo);
@@ -45,49 +55,58 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
     //微信授权登录-远程调用
     @Override
-    public UserInfo wxLogin(String code) {
-        //1 拿着code + 微信公众平台id  + 秘钥 请求微信接口服务，返回openid
+    public WxLoginResultDTO wxLogin(String code) {
         try {
             WxMaJscode2SessionResult sessionInfo =
                     wxMaService.getUserService().getSessionInfo(code);
             String openid = sessionInfo.getOpenid();
 
-            //2 拿着openid查询数据库表，如果表里面没有openid值，表示第一次登录
             LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(UserInfo::getWxOpenId,openid);
+            wrapper.eq(UserInfo::getWxOpenId, openid);
             UserInfo userInfo = userInfoMapper.selectOne(wrapper);
 
-            //判断
-            if(userInfo == null) { //如果表里面没有openid值，表示第一次登录
-                // 添加用户信息到数据库表
+            boolean isNewUser = false;
+            if (userInfo == null) {
                 userInfo = new UserInfo();
                 userInfo.setNickname(String.valueOf(System.currentTimeMillis()));
-                userInfo.setAvatarUrl("https://oss.aliyuncs.com/aliyun_id_photo_bucket/default_handsome.jpg");
+                // ponytail: avatar empty by default, frontend shows fallback icon
+                userInfo.setAvatarUrl("");
                 userInfo.setWxOpenId(openid);
                 userInfoMapper.insert(userInfo);
+                isNewUser = true;
             }
 
-            //3 返回uerInfo用户信息
-            return userInfo;
+            // 构建 LoginUser 并生成 token
+            LoginUser loginUser = new LoginUser();
+            loginUser.setUserid(userInfo.getId());
+            loginUser.setUsername(StringUtils.isNotEmpty(userInfo.getNickname())
+                    ? userInfo.getNickname() : openid);
+            Map<String, Object> tokenMap = tokenService.createToken(loginUser);
+            String token = (String) tokenMap.get("access_token");
+
+            return new WxLoginResultDTO(token, userInfo, isNewUser);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ServiceException("微信登录失败: " + e.getMessage());
         }
     }
 
-    //免押金
-    @Override
-    public Boolean isFreeDeposit() {
-        //根据用户id查询用户信息
-        UserInfo userInfo = userInfoMapper.selectById(SecurityContextHolder.getUserId());
-        //设置押金状态
-        userInfo.setDepositStatus("1");
-        userInfoMapper.updateById(userInfo);
-        return true;
+    /**
+     * 获取当前登录用户 VO
+     */
+    public UserVo getLoginUserVo(Long userId) {
+        UserInfo userInfo = this.getById(userId);
+        if (userInfo == null) {
+            return null;
+        }
+        UserVo vo = new UserVo();
+        vo.setNickname(userInfo.getNickname());
+        vo.setAvatar(userInfo.getAvatarUrl());
+        vo.setWxOpenId(userInfo.getWxOpenId());
+        return vo;
     }
 
     //统计2024年每个月注册人数
     //远程调用：统计用户注册数据
-    @Override
     public Map<String, Object> getUserCount() {
         List<UserCountVo> list = baseMapper.selectUserCount();
 
@@ -107,4 +126,83 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         return map;
     }
 
+    @Override
+    public Map<String, Object> getDashboardStats() {
+        Map<String, Object> stats = new HashMap<>();
+
+        // 用户总数
+        stats.put("totalUsers", baseMapper.selectCount(null));
+
+        // 今日新增用户数
+        LambdaQueryWrapper<UserInfo> todayWrapper = new LambdaQueryWrapper<>();
+        todayWrapper.apply("DATE(create_time) = CURDATE()");
+        stats.put("todayNewUsers", baseMapper.selectCount(todayWrapper));
+
+        return stats;
+    }
+
+    @Override
+    public String updateAvatar(MultipartFile file) {
+        R<SysFile> result = remoteFileService.upload(file);
+        if (result == null || result.getData() == null) {
+            throw new ServiceException("头像上传失败");
+        }
+        String url = result.getData().getUrl();
+        Long userId = SecurityUtils.getUserId();
+        baseMapper.update(null, new LambdaUpdateWrapper<UserInfo>()
+                .eq(UserInfo::getId, userId)
+                .set(UserInfo::getAvatarUrl, url));
+        return url;
+    }
+
+    @Override
+    public void updateNickname(String nickname) {
+        if (StringUtils.isEmpty(nickname)) {
+            throw new ServiceException("昵称不能为空");
+        }
+        if (nickname.length() > 30) {
+            throw new ServiceException("昵称长度不能超过30个字符");
+        }
+        Long userId = SecurityUtils.getUserId();
+        baseMapper.update(null, new LambdaUpdateWrapper<UserInfo>()
+                .eq(UserInfo::getId, userId)
+                .set(UserInfo::getNickname, nickname));
+    }
+
+    @Override
+    public UserInfo getCurrentUser() {
+        Long userId = SecurityUtils.getUserId();
+        return this.getById(userId);
+    }
+
+    @Override
+    public Map<String, Object> getUserStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+
+        // 用户总数
+        stats.put("totalUsers", baseMapper.selectCount(null));
+
+        // 今日新增
+        LambdaQueryWrapper<UserInfo> todayWrapper = new LambdaQueryWrapper<>();
+        todayWrapper.apply("DATE(create_time) = CURDATE()");
+        stats.put("todayNewUsers", baseMapper.selectCount(todayWrapper));
+
+        // 本周新增
+        LambdaQueryWrapper<UserInfo> weekWrapper = new LambdaQueryWrapper<>();
+        weekWrapper.apply("YEARWEEK(create_time, 1) = YEARWEEK(CURDATE(), 1)");
+        stats.put("weekNewUsers", baseMapper.selectCount(weekWrapper));
+
+        // 本月新增
+        LambdaQueryWrapper<UserInfo> monthWrapper = new LambdaQueryWrapper<>();
+        monthWrapper.apply("DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')");
+        stats.put("monthNewUsers", baseMapper.selectCount(monthWrapper));
+
+        // 活跃用户（最近30天有登录）
+        stats.put("activeUsers", userInfoMapper.countActiveUsers());
+
+        // 新增用户趋势
+        stats.put("dailyTrend", userInfoMapper.selectNewUserTrend(null));
+
+        return stats;
+    }
 }

@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import com.share.common.security.annotation.EnableRyFeignClients;
+import org.springframework.context.annotation.ComponentScan;
 
 
 /**
@@ -13,7 +14,7 @@ import com.share.common.security.annotation.EnableRyFeignClients;
  */
 @EnableRyFeignClients
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
-//@ComponentScan(basePackages = {"com.share"})
+@ComponentScan(basePackages = {"com.share"})
 public class ShareAuthApplication
 {
     public static void main(String[] args)

@@ -14,7 +14,7 @@ import com.share.system.api.model.LoginUser;
  *
  * @author share
  */
-@Component
+@Component("remoteUserFallbackFactorySystem")
 public class RemoteUserFallbackFactory implements FallbackFactory<RemoteUserService>
 {
     private static final Logger log = LoggerFactory.getLogger(RemoteUserFallbackFactory.class);

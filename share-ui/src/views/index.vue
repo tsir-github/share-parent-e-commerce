@@ -37,11 +37,22 @@
         <hr />
       </el-col>
     </el-row>
+
+    <!-- 仪表盘统计卡片 -->
+    <el-row :gutter="16" class="dashboard-stats">
+      <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="card in statCards" :key="card.label">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-label">{{ card.label }}</div>
+          <div class="stat-value" :style="{ color: card.color }">{{ card.value }}</div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="20">
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>共享充电宝后台管理框架</h2>
+        <h2>小区电商管理平台</h2>
         <p>
-          一直想做一款后台管理系统，看了很多优秀的开源项目但是发现没有合适自己的。于是利用空闲休息时间开始自己写一套后台系统。如此有了共享充电宝管理系统，她可以用于所有的Web应用程序，如网站管理后台，网站会员中心，CMS，CRM，OA等等，当然，您也可以对她进行深度定制，以做出更强系统。所有前端后台代码封装过后十分精简易上手，出错概率低。同时支持移动客户端访问。系统会陆续更新一些实用功能。
+          一直想做一款后台管理系统，看了很多优秀的开源项目但是发现没有合适自己的。于是利用空闲休息时间开始自己写一套后台系统。如此有了小区电商管理系统，她可以用于所有的Web应用程序，如网站管理后台，网站会员中心，CMS，CRM，OA等等，当然，您也可以对她进行深度定制，以做出更强系统。所有前端后台代码封装过后十分精简易上手，出错概率低。同时支持移动客户端访问。系统会陆续更新一些实用功能。
         </p>
         <p>
           <b>当前版本:</b> <span>v{{ version }}</span>
@@ -128,14 +139,14 @@
             <p>
               <i class="el-icon-chat-dot-round"></i> 微信：<a
                 href="javascript:;"
-                >/ *共享充电宝</a
+                >/ *小区电商</a
               >
             </p>
             <p>
               <i class="el-icon-money"></i> 支付宝：<a
                 href="javascript:;"
                 class="支付宝信息"
-                >/ *共享充电宝</a
+                >/ *小区电商</a
               >
             </p>
           </div>
@@ -847,7 +858,7 @@
             </el-collapse-item>
             <el-collapse-item title="v1.0.0 - 2020-05-20">
               <ol>
-                <li>共享充电宝微服务系统正式发布</li>
+                <li>小区电商微服务系统正式发布</li>
               </ol>
             </el-collapse-item>
           </el-collapse>
@@ -877,12 +888,44 @@
 </template>
 
 <script setup name="Index">
+import { onMounted, ref, computed } from 'vue'
+import { getOrderStats, getUserStats, getMerchantStats } from '@/api/dashboard'
+
 const version = ref('3.6.3')
+const orderStats = ref({})
+const userStats = ref({})
+const merchantStats = ref({})
+
+const statCards = computed(() => [
+  { label: '订单总数', value: orderStats.value.totalOrders ?? '-', color: '#409EFF' },
+  { label: '今日订单', value: orderStats.value.todayOrders ?? '-', color: '#67C23A' },
+  { label: '待支付订单', value: orderStats.value.pendingOrders ?? '-', color: '#E6A23C' },
+  { label: '总收入（元）', value: orderStats.value.totalRevenue ?? '-', color: '#F56C6C' },
+  { label: '今日收入（元）', value: orderStats.value.todayRevenue ?? '-', color: '#909399' },
+  { label: '用户总数', value: userStats.value.totalUsers ?? '-', color: '#409EFF' },
+  { label: '今日新增用户', value: userStats.value.todayNewUsers ?? '-', color: '#67C23A' },
+  { label: '商家总数', value: merchantStats.value.totalMerchants ?? '-', color: '#409EFF' },
+  { label: '已启用商家', value: merchantStats.value.activeMerchants ?? '-', color: '#67C23A' },
+  { label: '待审核商家', value: merchantStats.value.pendingAudit ?? '-', color: '#E6A23C' }
+])
+
+onMounted(() => {
+  getOrderStats().then(res => { orderStats.value = res.data })
+  getUserStats().then(res => { userStats.value = res.data })
+  getMerchantStats().then(res => { merchantStats.value = res.data })
+})
 
 function goTarget(url) {
   window.open(url, '__blank')
 }
 </script>
+
+<style scoped>
+.dashboard-stats { margin-bottom: 20px; }
+.stat-card { text-align: center; margin-bottom: 16px; }
+.stat-label { font-size: 14px; color: #909399; margin-bottom: 8px; }
+.stat-value { font-size: 28px; font-weight: bold; }
+</style>
 
 <style scoped lang="scss">
 .home {

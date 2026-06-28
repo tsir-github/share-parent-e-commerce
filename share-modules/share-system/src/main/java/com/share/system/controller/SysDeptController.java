@@ -2,9 +2,8 @@ package com.share.system.controller;
 
 import java.util.List;
 
-import com.share.system.mapper.SysDeptMapper;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,13 +31,10 @@ import com.share.system.service.ISysDeptService;
  */
 @RestController
 @RequestMapping("/dept")
+@RequiredArgsConstructor
 public class SysDeptController extends BaseController
 {
-    @Autowired
-    private ISysDeptService deptService;
-
-    @Autowired
-    private SysDeptMapper sysDeptMapper;
+    private final ISysDeptService deptService;
 
     /**
      * 获取部门列表

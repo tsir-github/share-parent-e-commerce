@@ -86,6 +86,116 @@ export const constantRoutes = [
   }
 ]
 
+// ========================================================================
+// 业务模块路由（商品/订单/支付/优惠券/用户/商家）
+// 在后台配置菜单权限前，手动注册以便访问。
+// 待菜单权限配置完成后可删除此处，由后端动态加载。
+// ========================================================================
+export const businessRoutes = [
+  {
+    path: '/goods',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    permissions: ['goods:product:list'],
+    meta: { title: '商品管理', icon: 'list' },
+    children: [
+      {
+        path: 'product',
+        component: () => import('@/views/goods/product/index.vue'),
+        name: 'GoodsProduct',
+        meta: { title: '商品列表' }
+      },
+      {
+        path: 'category',
+        component: () => import('@/views/goods/category/index.vue'),
+        name: 'GoodsCategory',
+        meta: { title: '分类管理' }
+      }
+    ]
+  },
+  {
+    path: '/order',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    permissions: ['order:orderInfo:list'],
+    meta: { title: '订单管理', icon: 'list' },
+    children: [
+      {
+        path: 'orderInfo',
+        component: () => import('@/views/order/orderInfo/index.vue'),
+        name: 'OrderInfo',
+        meta: { title: '订单列表' }
+      }
+    ]
+  },
+  {
+    path: '/payment',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    permissions: ['payment:payment:list'],
+    meta: { title: '支付管理', icon: 'money' },
+    children: [
+      {
+        path: 'paymentInfo',
+        component: () => import('@/views/payment/paymentInfo/index.vue'),
+        name: 'PaymentInfo',
+        meta: { title: '支付记录' }
+      }
+    ]
+  },
+  {
+    path: '/coupon',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    permissions: ['coupon:template:list'],
+    meta: { title: '优惠券管理', icon: 'list' },
+    children: [
+      {
+        path: 'template',
+        component: () => import('@/views/coupon/template/index.vue'),
+        name: 'CouponTemplate',
+        meta: { title: '优惠券模板' }
+      }
+    ]
+  },
+  {
+    path: '/userCenter',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    permissions: ['user:userInfo:list'],
+    meta: { title: '用户管理', icon: 'user' },
+    children: [
+      {
+        path: 'userInfo',
+        component: () => import('@/views/user/userInfo/index.vue'),
+        name: 'CUserInfo',
+        meta: { title: 'C端用户' }
+      }
+    ]
+  },
+  {
+    path: '/merchantCenter',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    permissions: ['merchant:merchant:list'],
+    meta: { title: '商家管理', icon: 'list' },
+    children: [
+      {
+        path: 'merchantInfo',
+        component: () => import('@/views/merchant/info/index.vue'),
+        name: 'MerchantInfo',
+        meta: { title: '商家列表' }
+      }
+    ]
+  }
+]
+
 // 动态路由，基于用户权限动态去加载
 export const dynamicRoutes = [
   {

@@ -43,7 +43,26 @@ public class LogAspect
     /** 排除敏感属性字段 */
     public static final String[] EXCLUDE_PROPERTIES = { "password", "oldPassword", "newPassword", "confirmPassword" };
 
-    /** 计算操作消耗时间 */
+    /**
+     * ★ 请求开始时间的 ThreadLocal
+     *
+     * 为什么需要这个 ThreadLocal？
+     *
+     * @Before (boBefore)   → 记录当前时间，存入 ThreadLocal
+     * @AfterReturning / @AfterThrowing (handleLog) → 从 ThreadLocal 取出时间，算耗时
+     * finally (handleLog) → 清理 ThreadLocal
+     *
+     * 这三个方法在同一个线程中执行（一次请求 = 一个线程），
+     * 所以 ThreadLocal 是天然的"临时传话筒"——
+     * 把开始时间从 boBefore 传到 handleLog，不需要改方法签名。
+     *
+     * 如果不用 ThreadLocal，就得把开始时间存在一个实例变量里。
+     * 但 LogAspect 是单例（@Component），多个请求同时进来会互相覆盖，
+     * 所以必须用 ThreadLocal，让每个请求有自己独立的时间副本。
+     *
+     * NamedThreadLocal 比普通 ThreadLocal 多一个名字，
+     * 在调试/排查 ThreadLocal 泄漏时能看名字知道它是干什么的。
+     */
     private static final ThreadLocal<Long> TIME_THREADLOCAL = new NamedThreadLocal<Long>("Cost Time");
 
     @Autowired
@@ -51,6 +70,9 @@ public class LogAspect
 
     /**
      * 处理请求前执行
+     *
+     * ★ 记下请求开始时间，存入 ThreadLocal
+     * 后续 handleLog 会从 ThreadLocal 中取出来，计算耗时
      */
     @Before(value = "@annotation(controllerLog)")
     public void boBefore(JoinPoint joinPoint, Log controllerLog)
@@ -111,7 +133,7 @@ public class LogAspect
             operLog.setRequestMethod(ServletUtils.getRequest().getMethod());
             // 处理设置注解上的参数
             getControllerMethodDescription(joinPoint, controllerLog, operLog, jsonResult);
-            // 设置消耗时间
+            // ★ 从 ThreadLocal 取出开始时间，计算耗时
             operLog.setCostTime(System.currentTimeMillis() - TIME_THREADLOCAL.get());
             // 保存数据库
             asyncLogService.saveSysLog(operLog);
@@ -124,6 +146,7 @@ public class LogAspect
         }
         finally
         {
+            // ★ 必须清理！防止线程池复用导致时间错乱
             TIME_THREADLOCAL.remove();
         }
     }

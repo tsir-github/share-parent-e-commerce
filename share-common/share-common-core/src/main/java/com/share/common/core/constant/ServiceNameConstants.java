@@ -25,4 +25,24 @@ public class ServiceNameConstants
 
     //微信登录
     public static final String SHARE_USER = "share-user";
+
+    /**
+     * 商品服务的serviceid
+     */
+    public static final String GOODS_SERVICE = "share-goods";
+
+    /**
+     * 支付服务的serviceid
+     */
+    public static final String PAYMENT_SERVICE = "share-payment";
+
+    /**
+     * 优惠券服务的serviceid
+     */
+    public static final String COUPON_SERVICE = "share-coupon";
+
+    /**
+     * 商家服务的serviceid
+     */
+    public static final String MERCHANT_SERVICE = "share-merchant";
 }

@@ -1,0 +1,23 @@
+[
+  {
+    "resource": "createOrder",
+    "count": 100,
+    "grade": 1,
+    "intervalSec": 1,
+    "controlBehavior": 0
+  },
+  {
+    "resource": "getNoFinishOrder",
+    "count": 200,
+    "grade": 1,
+    "intervalSec": 1,
+    "controlBehavior": 0
+  },
+  {
+    "resource": "getByOrderNo",
+    "count": 300,
+    "grade": 1,
+    "intervalSec": 1,
+    "controlBehavior": 0
+  }
+]

@@ -13,12 +13,12 @@
         <module>share-gen</module>
         <module>share-job</module>
         <module>share-file</module>
-        <module>share-device</module>
-        <module>share-user</module>
-        <module>share-rule</module>
-        <!--<module>share-order</module>
+        <module>share-goods</module>
+        <module>share-order</module>
         <module>share-payment</module>
-        <module>share-stastics</module>-->
+        <module>share-coupon</module>
+        <module>share-user</module>
+        <module>share-merchant</module>
     </modules>
 
     <artifactId>share-modules</artifactId>

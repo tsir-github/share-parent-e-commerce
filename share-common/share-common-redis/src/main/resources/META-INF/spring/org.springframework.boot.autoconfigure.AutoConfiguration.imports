@@ -1,2 +1,2 @@
 com.share.common.redis.configure.RedisConfig
-com.share.common.redis.service.RedisService
+com.share.common.redis.configure.RedissonConfig

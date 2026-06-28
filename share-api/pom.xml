@@ -11,7 +11,11 @@
     <modules>
         <module>share-api-system</module>
         <module>share-api-user</module>
-        <!--<module>share-api-order</module>-->
+        <module>share-api-goods</module>
+        <module>share-api-order</module>
+        <module>share-api-payment</module>
+        <module>share-api-coupon</module>
+        <module>share-api-merchant</module>
     </modules>
 
     <artifactId>share-api</artifactId>

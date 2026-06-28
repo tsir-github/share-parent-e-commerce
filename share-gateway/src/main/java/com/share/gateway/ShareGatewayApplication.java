@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @author share
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
-//@ComponentScan(basePackages = {"com.share"})
+@ComponentScan(basePackages = {"com.share"})
 public class ShareGatewayApplication
 {
     public static void main(String[] args)

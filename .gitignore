@@ -36,7 +36,27 @@ nbdist/
 .nb-gradle/
 
 ######################################################################
-# Others
+# Runtime
+
+### Logs（统一在项目根 logs/ 下，禁止模块各自产生）
+logs/
+share-modules/**/logs/
+*.err
+
+### Build artifacts
+BOOT-INF/
+META-INF/
+org/
+
+### Dev tools
+.opencode/
+.sisyphus/
+.session/
+sessionStore/
+opencode*.tgz
+.playwright-mcp/
+
+### Others
 *.log
 *.xml.versionsBackup
 *.swp

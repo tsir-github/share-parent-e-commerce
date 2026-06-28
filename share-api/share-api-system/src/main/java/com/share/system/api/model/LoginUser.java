@@ -62,6 +62,11 @@ public class LoginUser implements Serializable
     private Set<String> roles;
 
     /**
+     * 商家ID（商家角色登录时使用）
+     */
+    private Long merchantId;
+
+    /**
      * 用户信息
      */
     private SysUser sysUser;
@@ -160,6 +165,14 @@ public class LoginUser implements Serializable
     public void setRoles(Set<String> roles)
     {
         this.roles = roles;
+    }
+
+    public Long getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(Long merchantId) {
+        this.merchantId = merchantId;
     }
 
     public SysUser getSysUser()

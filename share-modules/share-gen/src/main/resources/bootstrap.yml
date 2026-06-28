@@ -27,3 +27,8 @@ spring:
         # 共享配置
         shared-configs:
           - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+        # 扩展配置（显式指定 dataId，解决 profile 不自动拼接的问题）
+        extension-configs:
+          - data-id: share-gen-dev.yml
+            group: DEFAULT_GROUP
+            refresh: true

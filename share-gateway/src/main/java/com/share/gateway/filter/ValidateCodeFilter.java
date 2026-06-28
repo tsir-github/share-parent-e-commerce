@@ -15,7 +15,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.share.common.core.utils.ServletUtils;
 import com.share.common.core.utils.StringUtils;
 import com.share.gateway.config.properties.CaptchaProperties;
-import com.share.gateway.service.ValidateCodeService;
+import com.share.gateway.service.impl.ValidateCodeServiceImpl;
 import reactor.core.publisher.Flux;
 
 /**
@@ -29,7 +29,7 @@ public class ValidateCodeFilter extends AbstractGatewayFilterFactory<Object>
     private final static String[] VALIDATE_URL = new String[] { "/auth/login", "/auth/register" };
 
     @Autowired
-    private ValidateCodeService validateCodeService;
+    private ValidateCodeServiceImpl validateCodeService;
 
     @Autowired
     private CaptchaProperties captchaProperties;

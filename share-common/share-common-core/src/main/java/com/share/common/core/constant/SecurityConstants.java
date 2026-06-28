@@ -43,6 +43,11 @@ public class SecurityConstants
     public static final String LOGIN_USER = "login_user";
 
     /**
+     * 商家ID字段
+     */
+    public static final String DETAILS_MERCHANT_ID = "merchant_id";
+
+    /**
      * 角色权限
      */
     public static final String ROLE_PERMISSION = "role_permission";

@@ -1,7 +1,13 @@
 <template>
+  <!--
+  登录页面
+  整个流程的"入口"——用户看到的第一页。
+  -->
   <div class="login">
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">共享充电宝后台管理系统</h3>
+      <h3 class="title">小区电商管理平台</h3>
+
+      <!-- 账号输入框 -->
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
@@ -13,6 +19,8 @@
           <template #prefix><svg-icon icon-class="user" class="el-input__icon input-icon" /></template>
         </el-input>
       </el-form-item>
+
+      <!-- 密码输入框（支持回车提交） -->
       <el-form-item prop="password">
         <el-input
           v-model="loginForm.password"
@@ -25,6 +33,8 @@
           <template #prefix><svg-icon icon-class="password" class="el-input__icon input-icon" /></template>
         </el-input>
       </el-form-item>
+
+      <!-- 验证码输入框（v-if="captchaEnabled"：验证码可关闭） -->
       <el-form-item prop="code" v-if="captchaEnabled">
         <el-input
           v-model="loginForm.code"
@@ -36,11 +46,16 @@
         >
           <template #prefix><svg-icon icon-class="validCode" class="el-input__icon input-icon" /></template>
         </el-input>
+        <!-- 验证码图片，点击可刷新 -->
         <div class="login-code">
           <img :src="codeUrl" @click="getCode" class="login-code-img"/>
         </div>
       </el-form-item>
+
+      <!-- 记住密码（存 Cookie，30 天有效） -->
       <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
+
+      <!-- 登录按钮 -->
       <el-form-item style="width:100%;">
         <el-button
           :loading="loading"
@@ -52,12 +67,13 @@
           <span v-if="!loading">登 录</span>
           <span v-else>登 录 中...</span>
         </el-button>
+        <!-- 注册链接（v-if="register" 可配置） -->
         <div style="float: right;" v-if="register">
           <router-link class="link-type" :to="'/register'">立即注册</router-link>
         </div>
       </el-form-item>
     </el-form>
-    <!--  底部  -->
+    <!--  底部版权信息  -->
     <div class="el-login-footer">
       <span>Copyright © 2018-2023 ruoyi.vip All Rights Reserved.</span>
     </div>
@@ -65,6 +81,16 @@
 </template>
 
 <script setup>
+/**
+ * ★ 登录页面的逻辑脚本
+ *
+ * 这是"登录流程"的最前端触发点。
+ * 用户填好账号密码验证码，点"登录"，从这里开始一路走到后端。
+ *
+ * 完整的调用链：
+ *   login.vue → userStore.login() → api/login.js login() → request.js 拦截器 → axios POST /auth/login
+ */
+
 import { getCodeImg } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from "@/utils/jsencrypt";
@@ -75,49 +101,66 @@ const route = useRoute();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
 
+// ★ 登录表单数据
+// 默认值 admin / admin123（方便开发调试）
 const loginForm = ref({
   username: "admin",
   password: "admin123",
-  rememberMe: false,
-  code: "",
-  uuid: ""
+  rememberMe: false,  // 记住密码
+  code: "",            // 验证码
+  uuid: ""             // 验证码在 Redis 中的 key
 });
 
+// ★ 表单校验规则
+// 三个字段都是必填的
 const loginRules = {
   username: [{ required: true, trigger: "blur", message: "请输入您的账号" }],
   password: [{ required: true, trigger: "blur", message: "请输入您的密码" }],
   code: [{ required: true, trigger: "change", message: "请输入验证码" }]
 };
 
-const codeUrl = ref("");
-const loading = ref(false);
-// 验证码开关
-const captchaEnabled = ref(true);
-// 注册开关
-const register = ref(false);
-const redirect = ref(undefined);
+const codeUrl = ref("");      // 验证码图片的 base64 URL
+const loading = ref(false);   // 登录中状态（按钮显示"登录中..."）
+const captchaEnabled = ref(true);  // 验证码开关（后端可关闭）
+const register = ref(false);       // 注册开关
+const redirect = ref(undefined);   // 登录成功后要跳转的路由
 
+// ★ 监听路由参数中的 redirect
+// 比如未登录访问 /system/user，被路由守卫拦到登录页，带上 ?redirect=/system/user
 watch(route, (newRoute) => {
     redirect.value = newRoute.query && newRoute.query.redirect;
 }, { immediate: true });
 
+/**
+ * ★ 点击"登录"按钮
+ *
+ * 流程：
+ *   1. 表单校验
+ *   2. 如果勾了"记住密码"→ 加密密码存 Cookie（30 天）
+ *   3. 调 userStore.login() → 发 POST /auth/login
+ *   4. 登录成功 → 跳转到 redirect 指定的页面（或首页）
+ *   5. 登录失败 → 取消加载状态，刷新验证码
+ */
 function handleLogin() {
   proxy.$refs.loginRef.validate(valid => {
     if (valid) {
       loading.value = true;
-      // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
+
+      // ★ 记住密码：用户名 + 加密后的密码存入 Cookie
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 });
         Cookies.set("password", encrypt(loginForm.value.password), { expires: 30 });
         Cookies.set("rememberMe", loginForm.value.rememberMe, { expires: 30 });
       } else {
-        // 否则移除
         Cookies.remove("username");
         Cookies.remove("password");
         Cookies.remove("rememberMe");
       }
-      // 调用action的登录方法
+
+      // ★ 调用 Pinia store 的 login action
+      // store 会调 api/login.js → 发 POST 请求到后端
       userStore.login(loginForm.value).then(() => {
+        // 登录成功 → 跳转（保留 redirect 之外的 query 参数）
         const query = route.query;
         const otherQueryParams = Object.keys(query).reduce((acc, cur) => {
           if (cur !== "redirect") {
@@ -127,8 +170,8 @@ function handleLogin() {
         }, {});
         router.push({ path: redirect.value || "/", query: otherQueryParams });
       }).catch(() => {
+        // 登录失败 → 取消加载状态 + 刷新验证码
         loading.value = false;
-        // 重新获取验证码
         if (captchaEnabled.value) {
           getCode();
         }
@@ -137,6 +180,10 @@ function handleLogin() {
   });
 }
 
+/**
+ * 获取验证码图片
+ * GET /code → { img: base64, uuid: key }
+ */
 function getCode() {
   getCodeImg().then(res => {
     captchaEnabled.value = res.captchaEnabled === undefined ? true : res.captchaEnabled;
@@ -147,6 +194,10 @@ function getCode() {
   });
 }
 
+/**
+ * 从 Cookie 中回填记住的用户名密码
+ * 页面加载时执行
+ */
 function getCookie() {
   const username = Cookies.get("username");
   const password = Cookies.get("password");
@@ -158,6 +209,7 @@ function getCookie() {
   };
 }
 
+// ★ 页面初始化：获取验证码 + 回填记住的密码
 getCode();
 getCookie();
 </script>

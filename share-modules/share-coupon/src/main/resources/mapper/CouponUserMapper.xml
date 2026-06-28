@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.share.coupon.mapper.CouponUserMapper">
+
+    <!-- 查询我的优惠券列表（JOIN 模板信息） -->
+    <select id="selectMyCouponList" resultType="java.util.Map">
+        SELECT cu.id, cu.template_id AS templateId, cu.status, cu.used_time AS usedTime, cu.create_time AS createTime,
+               ct.name, ct.type, ct.condition_amt AS conditionAmt, ct.discount_amt AS discountAmt,
+               ct.discount_rate AS discountRate, ct.start_time AS startTime, ct.end_time AS endTime
+        FROM coupon_user cu
+        JOIN coupon_template ct ON cu.template_id = ct.id
+        WHERE cu.user_id = #{userId}
+          AND cu.del_flag = '0'
+          AND ct.del_flag = '0'
+        <if test="status != null and status != ''">
+            AND cu.status = #{status}
+        </if>
+        ORDER BY cu.create_time DESC
+    </select>
+
+    <!-- 查询下单可用优惠券 -->
+    <select id="selectUsableCouponList" resultType="java.util.Map">
+        SELECT cu.id, cu.template_id AS templateId,
+               ct.name, ct.type, ct.condition_amt AS conditionAmt, ct.discount_amt AS discountAmt,
+               ct.discount_rate AS discountRate, ct.end_time AS endTime
+        FROM coupon_user cu
+        JOIN coupon_template ct ON cu.template_id = ct.id
+        WHERE cu.user_id = #{userId}
+          AND cu.status = '0'
+          AND cu.del_flag = '0'
+          AND ct.status = '1'
+          AND ct.del_flag = '0'
+          AND ct.start_time &lt;= NOW()
+          AND ct.end_time &gt;= NOW()
+        ORDER BY ct.discount_amt DESC, ct.discount_rate DESC
+    </select>
+
+    <!-- 查询当前用户在某模板上的领取数量 -->
+    <select id="countClaimedByUserAndTemplate" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM coupon_user
+        WHERE user_id = #{userId}
+          AND template_id = #{templateId}
+          AND del_flag = '0'
+    </select>
+
+</mapper>

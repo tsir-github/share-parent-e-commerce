@@ -80,6 +80,14 @@ public class SecurityUtils
     }
 
     /**
+     * 获取商家ID
+     */
+    public static Long getMerchantId()
+    {
+        return SecurityContextHolder.getMerchantId();
+    }
+
+    /**
      * 是否为管理员
      *
      * @param userId 用户ID

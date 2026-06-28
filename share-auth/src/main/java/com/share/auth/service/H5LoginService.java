@@ -37,7 +37,7 @@ public class H5LoginService {
         }
 
         String status = userInfo.getStatus();
-        if("2".equals(status)) {
+        if("1".equals(status)) {
             throw new ServiceException("账号被禁用");
         }
 
