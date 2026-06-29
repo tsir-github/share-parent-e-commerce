@@ -21,10 +21,10 @@ import org.springframework.context.annotation.Configuration;
  *       mock-mode: true
  *       app-id: your-app-id
  *       mch-id: your-mch-id
- *       api-key: xxxxx
- *       cert-serial: 商户证书序列号
- *       private-key-path: /config/cert/apiclient_key.pem
- *       notify-url: https://example.com/prod-api/payment/api/v1/payment/callback
+ *       api-key: your-api-v3-key
+ *       cert-serial: your-cert-serial-no
+ *       private-key-path: /path/to/apiclient_key.pem
+ *       notify-url: https://your-domain.com/prod-api/payment/api/v1/payment/callback
  * </pre>
  */
 @Data
