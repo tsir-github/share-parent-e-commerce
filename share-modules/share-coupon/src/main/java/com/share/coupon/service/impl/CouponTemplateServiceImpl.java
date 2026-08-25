@@ -29,6 +29,10 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         if (entity.getMerchantId() == null) {
             entity.setMerchantId(DEFAULT_MERCHANT_ID);
         }
+        // 初始剩余数量 = 发行总量（未指定时默认不限）
+        if (entity.getRemainCount() == null) {
+            entity.setRemainCount(entity.getTotalCount() != null ? entity.getTotalCount() : -1);
+        }
         return super.save(entity);
     }
 

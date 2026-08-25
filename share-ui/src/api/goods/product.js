@@ -19,3 +19,7 @@ export function updateProduct(data) {
 export function delProduct(ids) {
   return request({ url: '/goods/product/' + ids, method: 'delete' })
 }
+
+export function listSkuByProduct(productId) {
+  return request({ url: '/goods/sku/product/' + productId, method: 'get' })
+}

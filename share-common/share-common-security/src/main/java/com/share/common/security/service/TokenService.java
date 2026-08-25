@@ -114,6 +114,10 @@ public class TokenService
         claimsMap.put(SecurityConstants.USER_KEY, token);           // UUID → 用于查 Redis
         claimsMap.put(SecurityConstants.DETAILS_USER_ID, userId);   // 用于快速获取
         claimsMap.put(SecurityConstants.DETAILS_USERNAME, userName); // 用于快速获取
+        // 商家ID（仅商家角色有值，管理员为 null 时不写入 JWT）
+        if (loginUser.getMerchantId() != null) {
+            claimsMap.put(SecurityConstants.DETAILS_MERCHANT_ID, loginUser.getMerchantId());
+        }
 
         // 组装返回结果
         Map<String, Object> rspMap = new HashMap<String, Object>();

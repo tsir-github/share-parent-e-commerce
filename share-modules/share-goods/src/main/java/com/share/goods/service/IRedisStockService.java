@@ -3,6 +3,9 @@ package com.share.goods.service;
 /**
  * Redis Lua 库存预扣服务
  *
+ * <p>非实体 CRUD 工具类，不继承 {@code IService}。
+ * 职责是纯 Redis Lua 原子操作，不对应数据库表实体。</p>
+ *
  * <p>高并发场景下，先通过 Redis Lua 原子扣减，再异步同步到数据库，
  * 避免数据库行锁成为瓶颈。</p>
  *
@@ -43,4 +46,11 @@ public interface IRedisStockService {
      * @param stock  DB 当前库存
      */
     void syncStock(Long skuId, int stock);
+
+    /**
+     * 删除 Redis 库存缓存（SKU 删除时调用，防止缓存穿透）
+     *
+     * @param skuId SKU ID
+     */
+    void deleteStock(Long skuId);
 }

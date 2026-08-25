@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,7 +42,18 @@ public class CouponApiController {
     @GetMapping("/available")
     public R<List<AvailableCouponVO>> available() {
         Long userId = SecurityUtils.getUserId();
-        List<AvailableCouponVO> list = couponTemplateService.queryAvailableList().stream().map(t ->
+        List<com.share.coupon.domain.CouponTemplate> templates = couponTemplateService.queryAvailableList();
+        // 批量查询已领数量，替代 N+1 循环 COUNT
+        List<Long> templateIds = templates.stream().map(t -> t.getId()).collect(Collectors.toList());
+        Map<Long, Integer> claimedMap = new java.util.HashMap<>();
+        if (!templateIds.isEmpty()) {
+            for (Map<String, Object> row : couponUserMapper.countClaimedByUserAndTemplates(userId, templateIds)) {
+                Long tid = ((Number) row.get("templateId")).longValue();
+                Integer cnt = ((Number) row.get("cnt")).intValue();
+                claimedMap.put(tid, cnt);
+            }
+        }
+        List<AvailableCouponVO> list = templates.stream().map(t ->
                 AvailableCouponVO.builder()
                         .id(t.getId())
                         .name(t.getName())
@@ -54,7 +66,7 @@ public class CouponApiController {
                         .remainCount(t.getRemainCount())
                         .totalCount(t.getTotalCount())
                         .limitPerUser(t.getLimitPerUser())
-                        .claimedCount(couponUserMapper.countClaimedByUserAndTemplate(userId, t.getId()))
+                        .claimedCount(claimedMap.getOrDefault(t.getId(), 0))
                         .build()
         ).collect(Collectors.toList());
         return R.ok(list);

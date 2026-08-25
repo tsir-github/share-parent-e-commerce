@@ -1,5 +1,6 @@
 package com.share.goods.domain;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.share.common.core.web.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,9 +20,9 @@ public class Category extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 分类ID */
-    @Schema(description = "分类ID")
-    private Long id;
+    ///** 分类ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 父分类ID */
     @Schema(description = "父分类ID")
@@ -51,8 +52,9 @@ public class Category extends BaseEntity {
     @Schema(description = "扩展字段JSON")
     private String extJson;
 
-    /** 子分类列表（树形结构） */
+    /** 子分类列表（树形结构，非数据库字段） */
     @Schema(description = "子分类列表")
+    @TableField(exist = false)
     private List<Category> children;
 
 }

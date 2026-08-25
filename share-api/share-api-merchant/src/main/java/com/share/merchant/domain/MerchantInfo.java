@@ -21,9 +21,9 @@ public class MerchantInfo extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 商家ID */
-    @Schema(description = "商家ID")
-    private Long id;
+    ///** 商家ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 关联商家用户ID */
     @Schema(description = "关联商家用户ID")

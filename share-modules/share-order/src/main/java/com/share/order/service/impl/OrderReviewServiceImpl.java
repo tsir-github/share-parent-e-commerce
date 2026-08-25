@@ -16,6 +16,7 @@ import com.share.order.mapper.OrderInfoMapper;
 import com.share.order.mapper.OrderItemMapper;
 import com.share.order.mapper.OrderReviewMapper;
 import com.share.order.mapper.ReviewImageMapper;
+import com.share.order.service.IOrderReviewCacheService;
 import com.share.order.service.IOrderReviewService;
 import com.share.user.api.RemoteUserService;
 import com.share.user.domain.UserInfo;
@@ -41,6 +42,7 @@ public class OrderReviewServiceImpl extends ServiceImpl<OrderReviewMapper, Order
     private final OrderItemMapper orderItemMapper;
     private final ReviewImageMapper reviewImageMapper;
     private final RemoteUserService remoteUserService;
+    private final IOrderReviewCacheService reviewCacheService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -106,6 +108,9 @@ public class OrderReviewServiceImpl extends ServiceImpl<OrderReviewMapper, Order
                         .set(ReviewImage::getReviewId, review.getId())
                         .eq(ReviewImage::getOrderItemId, orderItemId)
                         .isNull(ReviewImage::getReviewId));
+
+        // 失效评价统计缓存
+        reviewCacheService.evictStats(orderItem.getProductId());
 
         return review.getId();
     }
@@ -199,13 +204,22 @@ public class OrderReviewServiceImpl extends ServiceImpl<OrderReviewMapper, Order
 
     @Override
     public ReviewStatsDTO getReviewStats(Long productId) {
-        Map<String, Object> stats = baseMapper.selectReviewStatsByProductId(productId);
-        if (stats == null || stats.isEmpty()) {
-            return new ReviewStatsDTO(0.0, 0);
+        // 先查缓存
+        ReviewStatsDTO cached = reviewCacheService.getStats(productId);
+        if (cached != null) {
+            return cached;
         }
-        Double avgRating = stats.get("avgRating") != null ? ((Number) stats.get("avgRating")).doubleValue() : 0.0;
-        Integer reviewCount = stats.get("reviewCount") != null ? ((Number) stats.get("reviewCount")).intValue() : 0;
-        return new ReviewStatsDTO(avgRating, reviewCount);
+        Map<String, Object> stats = baseMapper.selectReviewStatsByProductId(productId);
+        ReviewStatsDTO dto;
+        if (stats == null || stats.isEmpty()) {
+            dto = new ReviewStatsDTO(0.0, 0);
+        } else {
+            Double avgRating = stats.get("avgRating") != null ? ((Number) stats.get("avgRating")).doubleValue() : 0.0;
+            Integer reviewCount = stats.get("reviewCount") != null ? ((Number) stats.get("reviewCount")).intValue() : 0;
+            dto = new ReviewStatsDTO(avgRating, reviewCount);
+        }
+        reviewCacheService.setStats(productId, dto);
+        return dto;
     }
 
     @Override

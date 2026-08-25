@@ -5,6 +5,7 @@ import com.share.common.security.annotation.InnerAuth;
 import com.share.goods.api.RemoteGoodsService;
 import com.share.goods.domain.ProductSku;
 import com.share.goods.service.IProductSkuService;
+import com.share.goods.service.ISkuCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,21 @@ import java.util.List;
 public class InnerSkuController {
 
     private final IProductSkuService productSkuService;
+    private final ISkuCacheService skuCacheService;
 
     @Operation(summary = "根据 SKU ID 获取 SKU 信息（内部）")
     @InnerAuth
     @GetMapping("/{skuId}")
     public R<ProductSku> getSkuById(@PathVariable Long skuId) {
-        return R.ok(productSkuService.getSkuById(skuId));
+        ProductSku cached = skuCacheService.getSku(skuId);
+        if (cached != null) {
+            return R.ok(cached);
+        }
+        ProductSku sku = productSkuService.getSkuById(skuId);
+        if (sku != null) {
+            skuCacheService.setSku(skuId, sku);
+        }
+        return R.ok(sku);
     }
 
     @Operation(summary = "批量扣减库存（内部）")
@@ -42,7 +52,8 @@ public class InnerSkuController {
         if (items == null || items.isEmpty()) {
             return R.fail("扣减库存列表为空");
         }
-        productSkuService.deductStockBatch(items);
+        String orderNo = items.get(0).getOrderNo();
+        productSkuService.deductStockBatch(items, orderNo);
         return R.ok(true);
     }
 
@@ -53,7 +64,8 @@ public class InnerSkuController {
         if (items == null || items.isEmpty()) {
             return R.ok(true);
         }
-        productSkuService.releaseStockBatch(items);
+        String orderNo = items.get(0).getOrderNo();
+        productSkuService.releaseStockBatch(items, orderNo);
         return R.ok(true);
     }
 }

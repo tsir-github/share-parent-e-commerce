@@ -49,6 +49,8 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { merchantLogin } from '@/api/merchant/auth'
+import { setToken } from '@/utils/auth'
+import useUserStore from '@/store/modules/user'
 
 const router = useRouter()
 const loginFormRef = ref()
@@ -73,9 +75,14 @@ function handleLogin() {
         const token = res.data?.access_token
         const merchant = res.data?.merchant
         if (token) {
-          document.cookie = `Merchant-Token=${token}; path=/`
+          setToken(token)
           if (merchant) {
-            localStorage.setItem('merchantInfo', JSON.stringify(merchant))
+            const mi = JSON.parse(localStorage.getItem('merchantInfo') || '{}')
+            localStorage.setItem('merchantInfo', JSON.stringify({ ...mi, ...merchant }))
+            const userStore = useUserStore()
+            userStore.name = merchant.name || merchant.id
+            userStore.roles = ['merchant']
+            userStore.permissions = ['*:*:*']
           }
           router.push('/merchant/dashboard')
         }

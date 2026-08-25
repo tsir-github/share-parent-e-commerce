@@ -20,14 +20,11 @@ import java.util.List;
 /**
  * 支付管理（管理员端）
  *
- * <p>使用 {@code /payment} 路径前缀，与 {@link PaymentInfoController} 的
- * {@code /api/v1/payment/**} 及 {@code /inner/payment/**} 不冲突。</p>
- *
  * @author share
  */
 @Tag(name = "支付管理（管理员端）")
 @RestController
-@RequestMapping("/payment")
+@RequestMapping("/paymentInfo")
 @RequiredArgsConstructor
 public class PaymentInfoAdminController extends BaseController {
 

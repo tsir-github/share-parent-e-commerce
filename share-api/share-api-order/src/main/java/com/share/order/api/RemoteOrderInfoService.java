@@ -1,7 +1,9 @@
 package com.share.order.api;
 
 import com.share.common.core.domain.R;
+import com.share.common.core.constant.SecurityConstants;
 import com.share.order.domain.OrderInfo;
+import com.share.order.domain.dto.SeckillOrderRequest;
 import com.share.order.domain.vo.OrderSqlVo;
 import com.share.order.factory.RemoteOrderInfoFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 import java.util.Map;
@@ -31,4 +34,11 @@ public interface RemoteOrderInfoService {
 
     @PostMapping("/inner/order/getOrderCount")
     R<Map<String, Object>> getOrderCount(@RequestBody OrderSqlVo orderSqlVo);
+
+    @PostMapping("/inner/order/createSeckillOrder")
+    R<String> createSeckillOrder(@RequestBody SeckillOrderRequest request,
+                                  @RequestHeader(SecurityConstants.FROM_SOURCE) String fromSource);
+
+    @GetMapping("/inner/order/getMerchantDashboard/{merchantId}")
+    R<Map<String, Object>> getMerchantDashboard(@PathVariable("merchantId") Long merchantId);
 }

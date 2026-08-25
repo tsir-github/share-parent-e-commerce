@@ -59,6 +59,16 @@ public interface IUserInfoService extends IService<UserInfo> {
     void updateNickname(String nickname);
 
     /**
+     * 更新用户性别
+     */
+    void updateGender(String gender);
+
+    /**
+     * 更新用户手机号
+     */
+    void updatePhone(String phone);
+
+    /**
      * 获取当前登录用户信息
      *
      * @return 用户信息

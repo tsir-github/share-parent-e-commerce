@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -51,6 +52,12 @@ public class RemoteCouponFallbackFactory implements FallbackFactory<RemoteCoupon
             public R<Void> consume(Map<String, Object> params, String source) {
                 log.warn("消费优惠券降级: couponUserId={}", params.get("couponUserId"));
                 return R.fail("优惠券核销失败");
+            }
+
+            @Override
+            public R<Map<String, Object>> getCouponDetail(Map<String, Object> params, String source) {
+                log.warn("查询优惠券详情降级: couponUserId={}", params.get("couponUserId"));
+                return R.fail("优惠券服务暂不可用");
             }
         };
     }

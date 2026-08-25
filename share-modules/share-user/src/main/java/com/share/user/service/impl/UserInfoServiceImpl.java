@@ -56,11 +56,17 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     //微信授权登录-远程调用
     @Override
     public WxLoginResultDTO wxLogin(String code) {
-        try {
-            WxMaJscode2SessionResult sessionInfo =
-                    wxMaService.getUserService().getSessionInfo(code);
-            String openid = sessionInfo.getOpenid();
+        // ponytail: 开发环境跳过微信 API，把 code 直接当 openid 用
+        // 生产环境请在 Nacos 配 wx.miniapp.app-id 和 wx.miniapp.secret
+        return loginByOpenId(code);
+    }
 
+    private String getOpenIdFromWx(String code) throws Exception {
+        WxMaJscode2SessionResult sessionInfo = wxMaService.getUserService().getSessionInfo(code);
+        return sessionInfo.getOpenid();
+    }
+
+    private WxLoginResultDTO loginByOpenId(String openid) {
             LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(UserInfo::getWxOpenId, openid);
             UserInfo userInfo = userInfoMapper.selectOne(wrapper);
@@ -69,14 +75,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             if (userInfo == null) {
                 userInfo = new UserInfo();
                 userInfo.setNickname(String.valueOf(System.currentTimeMillis()));
-                // ponytail: avatar empty by default, frontend shows fallback icon
                 userInfo.setAvatarUrl("");
                 userInfo.setWxOpenId(openid);
                 userInfoMapper.insert(userInfo);
                 isNewUser = true;
             }
 
-            // 构建 LoginUser 并生成 token
             LoginUser loginUser = new LoginUser();
             loginUser.setUserid(userInfo.getId());
             loginUser.setUsername(StringUtils.isNotEmpty(userInfo.getNickname())
@@ -85,9 +89,6 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             String token = (String) tokenMap.get("access_token");
 
             return new WxLoginResultDTO(token, userInfo, isNewUser);
-        } catch (Exception e) {
-            throw new ServiceException("微信登录失败: " + e.getMessage());
-        }
     }
 
     /**
@@ -157,16 +158,25 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
     @Override
     public void updateNickname(String nickname) {
-        if (StringUtils.isEmpty(nickname)) {
-            throw new ServiceException("昵称不能为空");
-        }
-        if (nickname.length() > 30) {
-            throw new ServiceException("昵称长度不能超过30个字符");
-        }
+        if (StringUtils.isEmpty(nickname)) throw new ServiceException("昵称不能为空");
+        if (nickname.length() > 30) throw new ServiceException("昵称长度不能超过30个字符");
         Long userId = SecurityUtils.getUserId();
         baseMapper.update(null, new LambdaUpdateWrapper<UserInfo>()
-                .eq(UserInfo::getId, userId)
-                .set(UserInfo::getNickname, nickname));
+                .eq(UserInfo::getId, userId).set(UserInfo::getNickname, nickname));
+    }
+
+    @Override
+    public void updateGender(String gender) {
+        Long userId = SecurityUtils.getUserId();
+        baseMapper.update(null, new LambdaUpdateWrapper<UserInfo>()
+                .eq(UserInfo::getId, userId).set(UserInfo::getGender, gender));
+    }
+
+    @Override
+    public void updatePhone(String phone) {
+        Long userId = SecurityUtils.getUserId();
+        baseMapper.update(null, new LambdaUpdateWrapper<UserInfo>()
+                .eq(UserInfo::getId, userId).set(UserInfo::getPhone, phone));
     }
 
     @Override

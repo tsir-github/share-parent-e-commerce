@@ -78,6 +78,12 @@ public class HeaderInterceptor implements AsyncHandlerInterceptor
                 // key: SecurityConstants.DETAILS_USER_ID ("user_id")
                 // value: 用户ID字符串
                 SecurityContextHolder.setUserId(loginUser.getUserid().toString());
+                
+                // 传播商家ID — 商家登录时 LoginUser 中已设置了 merchantId，
+                // 管理员无此值，需判空
+                if (loginUser.getMerchantId() != null) {
+                    SecurityContextHolder.setMerchantId(loginUser.getMerchantId().toString());
+                }
             }
         }
         return true;

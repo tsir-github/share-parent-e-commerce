@@ -4,6 +4,7 @@ import com.share.common.core.domain.R;
 import com.share.common.security.annotation.RequiresLogin;
 import com.share.common.security.utils.SecurityUtils;
 import com.share.merchant.domain.MerchantInfo;
+import com.share.merchant.domain.MerchantUser;
 import com.share.merchant.service.IMerchantInfoService;
 import com.share.merchant.service.IMerchantUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,26 +50,56 @@ public class MerchantProfileController {
     @Operation(summary = "修改密码")
     @RequiresLogin
     @PutMapping("/password")
-    public R<Void> updatePassword(@RequestParam String newPassword) {
-        merchantUserService.updatePassword(SecurityUtils.getUserId(), newPassword);
+    public R<Void> updatePassword(@RequestBody Map<String, String> body) {
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+        if (oldPassword == null || oldPassword.isEmpty() || newPassword == null || newPassword.isEmpty()) {
+            return R.fail("旧密码和新密码不能为空");
+        }
+        Long userId = SecurityUtils.getUserId();
+        MerchantUser user = merchantUserService.getById(userId);
+        if (user == null || !SecurityUtils.matchesPassword(oldPassword, user.getPassword())) {
+            return R.fail("旧密码错误");
+        }
+        merchantUserService.updatePassword(userId, newPassword);
         return R.ok();
+    }
+
+    @Operation(summary = "更新商家个人资料（手机号、邮箱）")
+    @RequiresLogin
+    @PutMapping("/user")
+    public R<Void> updateUserInfo(@RequestBody MerchantUser update) {
+        merchantUserService.updateUserInfo(
+            SecurityUtils.getUserId(),
+            update.getPhone(),
+            update.getEmail()
+        );
+        return R.ok();
+    }
+
+    @Operation(summary = "获取商家个人资料（手机号、邮箱）")
+    @RequiresLogin
+    @GetMapping("/user")
+    public R<java.util.Map<String, String>> getUserInfo() {
+        MerchantUser user = merchantUserService.getById(SecurityUtils.getUserId());
+        java.util.Map<String, String> map = new java.util.HashMap<>();
+        if (user != null) {
+            map.put("phone", user.getPhone() != null ? user.getPhone() : "");
+            map.put("email", user.getEmail() != null ? user.getEmail() : "");
+        }
+        return R.ok(map);
     }
 
     @Operation(summary = "上传店铺Logo")
     @RequiresLogin
-    @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public R<Map<String, String>> uploadLogo(@RequestParam("file") MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            return R.fail("文件不能为空");
+    @PostMapping("/logo")
+    public R<Void> updateLogo(@RequestBody Map<String, String> body) {
+        String logoUrl = body.get("logoUrl");
+        if (logoUrl == null || logoUrl.isEmpty()) {
+            return R.fail("Logo URL不能为空");
         }
-        String ct = file.getContentType();
-        if (ct == null || !ct.startsWith("image/")) {
-            return R.fail("只允许上传图片文件");
-        }
-        if (file.getSize() > 10 * 1024 * 1024) {
-            return R.fail("图片大小不能超过10MB");
-        }
-        String url = merchantInfoService.updateLogo(SecurityUtils.getMerchantId(), file);
-        return R.ok(Map.of("logoUrl", url));
+        Long merchantId = SecurityUtils.getMerchantId();
+        merchantInfoService.updateLogoUrl(merchantId, logoUrl);
+        return R.ok();
     }
 }

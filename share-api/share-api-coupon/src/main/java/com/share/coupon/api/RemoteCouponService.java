@@ -57,4 +57,11 @@ public interface RemoteCouponService {
     @PostMapping("/inner/coupon/consume")
     R<Void> consume(@RequestBody Map<String, Object> params,
                     @RequestHeader(SecurityConstants.FROM_SOURCE) String source);
+
+    /**
+     * 查询优惠券详情（含模板折扣信息，下单计算折扣用）
+     */
+    @PostMapping("/inner/coupon/detail")
+    R<Map<String, Object>> getCouponDetail(@RequestBody Map<String, Object> params,
+                                            @RequestHeader(SecurityConstants.FROM_SOURCE) String source);
 }

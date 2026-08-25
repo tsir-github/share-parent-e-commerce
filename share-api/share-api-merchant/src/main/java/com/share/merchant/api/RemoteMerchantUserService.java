@@ -7,6 +7,7 @@ import com.share.merchant.domain.MerchantUser;
 import com.share.merchant.factory.RemoteMerchantUserFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,7 +33,7 @@ public interface RemoteMerchantUserService {
     /**
      * 根据商家ID获取用户信息
      */
-    @GetMapping("/inner/merchant/user/getByMerchantId")
-    R<MerchantUser> getByMerchantId(@RequestParam("merchantId") Long merchantId,
+    @GetMapping("/inner/merchant/user/getByMerchantId/{merchantId}")
+    R<MerchantUser> getByMerchantId(@PathVariable("merchantId") Long merchantId,
                                     @RequestHeader(SecurityConstants.FROM_SOURCE) String source);
 }

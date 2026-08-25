@@ -69,4 +69,12 @@ public class InnerCouponController {
         couponUserService.consumeCoupon(couponUserId);
         return R.ok();
     }
+
+    @Operation(summary = "查询优惠券详情（含模板信息）")
+    @InnerAuth
+    @PostMapping("/detail")
+    public R<Map<String, Object>> detail(@RequestBody Map<String, Object> params) {
+        Long couponUserId = Long.valueOf(params.get("couponUserId").toString());
+        return R.ok(couponUserService.getCouponDetail(couponUserId));
+    }
 }

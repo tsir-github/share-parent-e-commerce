@@ -44,4 +44,17 @@
           AND del_flag = '0'
     </select>
 
+    <!-- 批量查询当前用户在多个模板上的领取数量 -->
+    <select id="countClaimedByUserAndTemplates" resultType="java.util.HashMap">
+        SELECT template_id AS templateId, COUNT(*) AS cnt
+        FROM coupon_user
+        WHERE user_id = #{userId}
+          AND template_id IN
+        <foreach collection="templateIds" item="tid" open="(" separator="," close=")">
+            #{tid}
+        </foreach>
+          AND del_flag = '0'
+        GROUP BY template_id
+    </select>
+
 </mapper>

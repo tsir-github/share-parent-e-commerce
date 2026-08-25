@@ -284,6 +284,30 @@ public class CouponUserServiceImpl extends ServiceImpl<CouponUserMapper, CouponU
         log.info("优惠券已消费: couponUserId={}", couponUserId);
     }
 
+    @Override
+    public Map<String, Object> getCouponDetail(Long couponUserId) {
+        CouponUser cu = baseMapper.selectById(couponUserId);
+        if (cu == null) {
+            throw new ServiceException("优惠券不存在");
+        }
+        CouponTemplate ct = couponTemplateMapper.selectById(cu.getTemplateId());
+        if (ct == null) {
+            throw new ServiceException("优惠券模板不存在");
+        }
+        Map<String, Object> detail = new java.util.HashMap<>();
+        detail.put("couponUserId", cu.getId());
+        detail.put("userId", cu.getUserId());
+        detail.put("status", cu.getStatus());
+        detail.put("templateId", ct.getId());
+        detail.put("type", ct.getType());
+        detail.put("conditionAmt", ct.getConditionAmt());
+        detail.put("discountAmt", ct.getDiscountAmt());
+        detail.put("discountRate", ct.getDiscountRate());
+        detail.put("startTime", ct.getStartTime());
+        detail.put("endTime", ct.getEndTime());
+        return detail;
+    }
+
     // --- 辅助方法 ---
 
     private static Long toLong(Object v) {

@@ -51,8 +51,8 @@ public class MerchantUserServiceImpl extends ServiceImpl<MerchantUserMapper, Mer
         return user;
     }
 
-    @Override
-    public LoginUser login(String username, String password) {
+      @Override
+      public MerchantUser login(String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             throw new ServiceException("账号或密码不能为空");
         }
@@ -78,22 +78,16 @@ public class MerchantUserServiceImpl extends ServiceImpl<MerchantUserMapper, Mer
             throw new ServiceException("店铺未审核通过或已关闭");
         }
 
-        // 更新登录信息
-        HttpServletRequest request = ServletUtils.getRequest();
-        String ip = IpUtils.getIpAddr(request);
-        baseMapper.update(null, new LambdaUpdateWrapper<MerchantUser>()
-                .eq(MerchantUser::getId, merchantUser.getId())
-                .set(MerchantUser::getLoginIp, ip)
-                .set(MerchantUser::getLoginDate, new Date()));
+          // 更新登录信息
+          HttpServletRequest request = ServletUtils.getRequest();
+          String ip = IpUtils.getIpAddr(request);
+          baseMapper.update(null, new LambdaUpdateWrapper<MerchantUser>()
+                  .eq(MerchantUser::getId, merchantUser.getId())
+                  .set(MerchantUser::getLoginIp, ip)
+                  .set(MerchantUser::getLoginDate, new Date()));
 
-        // 封装 LoginUser
-        LoginUser loginUser = new LoginUser();
-        loginUser.setUserid(merchantUser.getId());
-        loginUser.setUsername(merchantUser.getUsername());
-        loginUser.setMerchantId(merchantUser.getMerchantId());
-        loginUser.setStatus(UserConstants.NORMAL);
-        return loginUser;
-    }
+          return merchantUser;
+      }
 
     @Override
     public MerchantUser getByUsername(String username) {
@@ -117,5 +111,44 @@ public class MerchantUserServiceImpl extends ServiceImpl<MerchantUserMapper, Mer
         baseMapper.update(null, new LambdaUpdateWrapper<MerchantUser>()
                 .eq(MerchantUser::getId, id)
                 .set(MerchantUser::getPassword, SecurityUtils.encryptPassword(newPassword)));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String resetPasswordByAdmin(Long merchantId, String newPassword) {
+        MerchantUser user = getByMerchantId(merchantId);
+        if (user == null) {
+            throw new ServiceException("该商家尚无登录账号");
+        }
+        updatePassword(user.getId(), newPassword);
+        return user.getUsername();
+    }
+
+    @Override
+    public void logicDeleteByMerchantId(Long merchantId) {
+        baseMapper.update(null, new LambdaUpdateWrapper<MerchantUser>()
+                .eq(MerchantUser::getMerchantId, merchantId)
+                .set(MerchantUser::getDelFlag, "2"));
+    }
+
+    @Override
+    public void syncStatusByMerchantId(Long merchantId, String status) {
+        String userStatus = "2".equals(status) ? "1" : "0";
+        baseMapper.update(null, new LambdaUpdateWrapper<MerchantUser>()
+                .eq(MerchantUser::getMerchantId, merchantId)
+                .set(MerchantUser::getStatus, userStatus));
+    }
+
+    @Override
+    public void updateUserInfo(Long userId, String phone, String email) {
+        LambdaUpdateWrapper<MerchantUser> wrapper = new LambdaUpdateWrapper<MerchantUser>()
+                .eq(MerchantUser::getId, userId);
+        if (StringUtils.isNotEmpty(phone)) {
+            wrapper.set(MerchantUser::getPhone, phone);
+        }
+        if (StringUtils.isNotEmpty(email)) {
+            wrapper.set(MerchantUser::getEmail, email);
+        }
+        baseMapper.update(null, wrapper);
     }
 }

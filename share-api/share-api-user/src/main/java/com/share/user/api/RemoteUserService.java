@@ -4,6 +4,7 @@ import com.share.common.core.constant.SecurityConstants;
 import com.share.common.core.constant.ServiceNameConstants;
 import com.share.common.core.domain.R;
 import com.share.user.domain.UserInfo;
+import com.share.user.domain.dto.WxLoginResultDTO;
 import com.share.user.factory.RemoteUserFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +22,8 @@ import java.util.Map;
 public interface RemoteUserService
 {
 
-    @GetMapping("/userInfo/wxLogin/{code}")
-    public R<UserInfo> wxLogin(@PathVariable("code") String code);
+    @GetMapping("/api/v1/user/wxLogin/{code}")
+    public R<WxLoginResultDTO> wxLogin(@PathVariable("code") String code);
 
     @GetMapping(value = "/userInfo/getUserInfo/{id}")
     public R<UserInfo> getInfo(@PathVariable("id") Long id);

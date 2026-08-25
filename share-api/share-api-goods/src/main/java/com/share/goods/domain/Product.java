@@ -20,9 +20,9 @@ public class Product extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 商品ID */
-    @Schema(description = "商品ID")
-    private Long id;
+    ///** 商品ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 分类ID */
     @Schema(description = "分类ID")
@@ -79,6 +79,10 @@ public class Product extends BaseEntity {
     /** 是否热销 */
     @Schema(description = "是否热销")
     private String isHot;
+
+    /** 是否推荐 */
+    @Schema(description = "是否推荐(0-否 1-是)")
+    private String isRecommended;
 
     /** 扩展字段 */
     @Schema(description = "扩展字段JSON")

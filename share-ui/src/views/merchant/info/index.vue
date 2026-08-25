@@ -24,34 +24,40 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
     </el-row>
 
-    <el-table v-loading="loading" :data="merchantList" border stripe>
-      <el-table-column label="ID" align="center" prop="id" width="60" />
-      <el-table-column label="店铺名称" align="center" prop="name" width="160" :show-overflow-tooltip="true" />
+    <el-table v-loading="loading" :data="merchantList" max-height="calc(100vh - 280px)">
+      <el-table-column label="店铺名称" align="center" prop="name" :show-overflow-tooltip="true" />
       <el-table-column label="联系人" align="center" prop="contactName" width="100" />
       <el-table-column label="联系电话" align="center" prop="contactPhone" width="130" />
-      <el-table-column label="店铺地址" align="center" prop="address" :show-overflow-tooltip="true" />
-      <el-table-column label="状态" align="center" width="100">
+      <el-table-column label="状态" align="center" width="90">
         <template #default="scope">
           <el-tag :type="statusType(scope.row.status)">{{ statusLabel(scope.row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="审核备注" align="center" prop="auditRemark" width="140" :show-overflow-tooltip="true" />
+      <el-table-column label="关联账号" align="center" prop="accountUsername" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="170">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="260" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['merchant:merchant:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['merchant:merchant:remove']">删除</el-button>
-          <el-button v-if="scope.row.status === '0'" link type="primary" icon="CircleCheck" @click="handleAudit(scope.row)" v-hasPermi="['merchant:merchant:audit']">审核</el-button>
-          <el-button link type="primary" icon="View" @click="handleDetail(scope.row)">详情</el-button>
+          <el-tooltip content="修改" placement="top">
+            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['merchant:merchant:edit']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+            <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['merchant:merchant:remove']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="审核" placement="top" v-if="scope.row.status === '0'">
+            <el-button link type="primary" icon="CircleCheck" @click="handleAudit(scope.row)" v-hasPermi="['merchant:merchant:audit']"></el-button>
+          </el-tooltip>
+          <el-tooltip content="详情" placement="top">
+            <el-button link type="primary" icon="View" @click="handleDetail(scope.row)"></el-button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+    <pagination :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog :title="title" v-model="open" width="550px" append-to-body>
@@ -109,16 +115,31 @@
 
     <el-dialog title="商家详情" v-model="detailOpen" width="600px" append-to-body>
       <el-form label-width="100px">
-        <el-form-item label="店铺名称">{{ detailForm.name }}</el-form-item>
-        <el-form-item label="联系人">{{ detailForm.contactName }}</el-form-item>
-        <el-form-item label="联系电话">{{ detailForm.contactPhone }}</el-form-item>
-        <el-form-item label="店铺地址">{{ detailForm.address }}</el-form-item>
-        <el-form-item label="店铺描述">{{ detailForm.description || '-' }}</el-form-item>
+        <el-form-item label="店铺名称">{{ detailForm.merchant?.name || detailForm.name }}</el-form-item>
+        <el-form-item label="联系人">{{ detailForm.merchant?.contactName || detailForm.contactName }}</el-form-item>
+        <el-form-item label="联系电话">{{ detailForm.merchant?.contactPhone || detailForm.contactPhone }}</el-form-item>
+        <el-form-item label="店铺地址">{{ detailForm.merchant?.address || detailForm.address }}</el-form-item>
+        <el-form-item label="店铺描述">{{ (detailForm.merchant?.description || detailForm.description) || '-' }}</el-form-item>
         <el-form-item label="状态">
-          <el-tag :type="statusType(detailForm.status)">{{ statusLabel(detailForm.status) }}</el-tag>
+          <el-tag :type="statusType(detailForm.merchant?.status || detailForm.status)">{{ statusLabel(detailForm.merchant?.status || detailForm.status) }}</el-tag>
         </el-form-item>
-        <el-form-item label="审核备注">{{ detailForm.auditRemark || '-' }}</el-form-item>
-        <el-form-item label="创建时间">{{ parseTime(detailForm.createTime) }}</el-form-item>
+        <el-form-item label="审核备注">{{ (detailForm.merchant?.auditRemark || detailForm.auditRemark) || '-' }}</el-form-item>
+        <el-divider content-position="left">登录账号</el-divider>
+        <template v-if="detailForm.account">
+          <el-form-item label="用户名">
+            <span>{{ detailForm.account.username }}</span>
+            <el-button link type="primary" icon="CopyDocument" @click="copyText(detailForm.account.username)" style="margin-left: 8px">复制</el-button>
+          </el-form-item>
+          <el-form-item label="账号状态">
+            <el-tag :type="detailForm.account.status === '0' ? 'success' : 'danger'">{{ detailForm.account.status === '0' ? '正常' : '停用' }}</el-tag>
+          </el-form-item>
+          <el-form-item label="最近登录">{{ parseTime(detailForm.account.loginDate) || '-' }}</el-form-item>
+          <el-form-item>
+            <el-button type="warning" icon="Lock" @click="handleResetPwd()">重置密码</el-button>
+          </el-form-item>
+        </template>
+        <el-form-item v-else label="登录账号"><span style="color: #999">暂无登录账号</span></el-form-item>
+        <el-form-item label="创建时间">{{ parseTime(detailForm.merchant?.createTime || detailForm.createTime) }}</el-form-item>
       </el-form>
     </el-dialog>
   </div>
@@ -126,7 +147,7 @@
 
 <script setup name="MerchantInfo">
 import { getCurrentInstance } from 'vue'
-import { listMerchantInfo, getMerchantInfo, auditMerchantInfo, addMerchantInfo, updateMerchantInfo, delMerchantInfo } from '@/api/merchant/info'
+import { listMerchantInfo, getMerchantInfo, auditMerchantInfo, addMerchantInfo, updateMerchantInfo, delMerchantInfo, resetMerchantPassword } from '@/api/merchant/info'
 
 const { proxy } = getCurrentInstance()
 
@@ -174,7 +195,7 @@ function getList() {
   loading.value = true
   listMerchantInfo(queryParams.value).then(res => {
     merchantList.value = res.rows
-    total.value = res.total
+    total.value = Number(res.total)
     loading.value = false
   })
 }
@@ -202,8 +223,12 @@ function submitAudit(status) {
   }
   auditing.value = true
   auditMerchantInfo({ id: auditForm.value.id, status, auditRemark: auditForm.value.auditRemark })
-    .then(() => {
-      proxy.$modal.msgSuccess('审核完成')
+    .then(res => {
+      let msg = '审核完成'
+      if (status === '1' && res.username) {
+        msg = '审核通过！商家登录账号：' + res.username + '，默认密码：123456'
+      }
+      proxy.$modal.msgSuccess(msg)
       auditOpen.value = false
       getList()
     })
@@ -260,6 +285,21 @@ function handleDelete(row) {
   }).then(() => {
     proxy.$modal.msgSuccess('删除成功')
     getList()
+  })
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    proxy.$modal.msgSuccess('已复制：' + text)
+  })
+}
+
+function handleResetPwd() {
+  proxy.$modal.prompt('请输入新密码（留空则为默认 123456）', '重置密码').then(({ value }) => {
+    const newPwd = value || '123456'
+    return resetMerchantPassword(detailForm.value.merchant?.id || detailForm.value.id, newPwd).then(res => {
+      proxy.$modal.msgSuccess('密码已重置：' + res.username + ' / ' + newPwd)
+    })
   })
 }
 

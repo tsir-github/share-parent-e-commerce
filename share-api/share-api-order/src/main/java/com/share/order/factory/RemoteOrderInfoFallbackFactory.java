@@ -2,6 +2,7 @@ package com.share.order.factory;
 
 import com.share.common.core.domain.R;
 import com.share.order.api.RemoteOrderInfoService;
+import com.share.order.domain.dto.SeckillOrderRequest;
 import com.share.order.domain.OrderInfo;
 import com.share.order.domain.vo.OrderSqlVo;
 import org.slf4j.Logger;
@@ -40,6 +41,16 @@ public class RemoteOrderInfoFallbackFactory implements FallbackFactory<RemoteOrd
             @Override
             public R<Map<String, Object>> getOrderCount(OrderSqlVo orderSqlVo) {
                 return R.fail("获取订单统计失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<String> createSeckillOrder(SeckillOrderRequest request, String fromSource) {
+                return R.fail("创建秒杀订单失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<Map<String, Object>> getMerchantDashboard(Long merchantId) {
+                return R.fail("获取商家控制台数据失败:" + throwable.getMessage());
             }
         };
     }

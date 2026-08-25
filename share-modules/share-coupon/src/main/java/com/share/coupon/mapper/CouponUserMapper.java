@@ -30,4 +30,12 @@ public interface CouponUserMapper extends BaseMapper<CouponUser> {
      */
     Integer countClaimedByUserAndTemplate(@Param("userId") Long userId,
                                           @Param("templateId") Long templateId);
+
+    /**
+     * 批量查询当前用户在多个模板上的领取数量（替代 N+1 循环）
+     *
+     * @return List<Map> with keys: templateId, cnt
+     */
+    java.util.List<java.util.Map<String, Object>> countClaimedByUserAndTemplates(@Param("userId") Long userId,
+                                                                  @Param("templateIds") java.util.List<Long> templateIds);
 }

@@ -9,6 +9,8 @@ import com.share.common.core.constant.ProductSkuStatus;
 import com.share.common.core.exception.ServiceException;
 import com.share.goods.mapper.ProductSkuMapper;
 import com.share.goods.service.IProductSkuService;
+import com.share.goods.service.ISkuCacheService;
+import com.share.common.core.constant.CacheConstants;
 import com.share.goods.service.IRedisStockService;
 import org.springframework.util.Assert;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,8 +44,8 @@ public class ProductSkuServiceImpl extends ServiceImpl<ProductSkuMapper, Product
     private final ProductSkuMapper productSkuMapper;
     private final IRedisStockService redisStockService;
     private final RedissonClient redissonClient;
+    private final ISkuCacheService skuCacheService;
 
-    private static final String STOCK_LOCK_PREFIX = "stock:sku:lock:";
     private static final Long DEFAULT_MERCHANT_ID = 1L;
 
     public List<ProductSku> selectSkuList(ProductSku sku) {
@@ -55,7 +58,33 @@ public class ProductSkuServiceImpl extends ServiceImpl<ProductSkuMapper, Product
         if (entity.getMerchantId() == null) {
             entity.setMerchantId(DEFAULT_MERCHANT_ID);
         }
-        return super.save(entity);
+        boolean result = super.save(entity);
+        if (result && entity.getId() != null) {
+            skuCacheService.evictSku(entity.getId());
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateById(ProductSku entity) {
+        boolean result = super.updateById(entity);
+        if (result && entity.getId() != null) {
+            skuCacheService.evictSku(entity.getId());
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean removeById(ProductSku entity) {
+        boolean result = super.removeById(entity);
+        if (result && entity.getId() != null) {
+            // ponytail: 删除 SKU 时驱逐 info 缓存 + 清除 Redis 库存，防止 InnerSkuController 缓存穿透返回已删除的 SKU
+            skuCacheService.evictSku(entity.getId());
+            redisStockService.deleteStock(entity.getId());
+        }
+        return result;
     }
 
     public List<ProductSku> selectSkuByProductId(Long productId) {
@@ -82,7 +111,7 @@ public class ProductSkuServiceImpl extends ServiceImpl<ProductSkuMapper, Product
     @Transactional(rollbackFor = Exception.class)
     public boolean deductStock(Long skuId, Integer quantity) {
         // L1: SKU 级分布式锁 — 序列化同一 SKU 的并发扣减
-        RLock lock = redissonClient.getLock(STOCK_LOCK_PREFIX + skuId);
+        RLock lock = redissonClient.getLock(CacheConstants.STOCK_SKU_LOCK_KEY + skuId);
         try {
             if (!lock.tryLock(2, 10, TimeUnit.SECONDS)) {
                 throw new ServiceException("库存操作繁忙，请重试");
@@ -108,9 +137,15 @@ public class ProductSkuServiceImpl extends ServiceImpl<ProductSkuMapper, Product
                 }
                 int rows = productSkuMapper.deductStock(skuId, quantity, sku.getVersion());
                 if (rows > 0) {
-                    // DB 扣减成功 → 同步 Redis 快照
+                    // DB 扣减成功 → 同步 Redis 快照 + 驱逐 SKU 信息缓存
                     ProductSku updated = productSkuMapper.selectById(skuId);
                     redisStockService.syncStock(skuId, updated.getStock());
+                    // ponytail: SKU 缓存失效失败不影响库存变更（库存数据已在 DB/Redis 正确更新）
+                    try {
+                        skuCacheService.evictSku(skuId);
+                    } catch (Exception e) {
+                        log.warn("库存扣减后SKU缓存失效失败: skuId={}", skuId, e);
+                    }
                     return true;
                 }
             }
@@ -139,22 +174,54 @@ public class ProductSkuServiceImpl extends ServiceImpl<ProductSkuMapper, Product
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deductStockBatch(List<RemoteGoodsService.StockDeductDTO> items) {
-        for (RemoteGoodsService.StockDeductDTO item : items) {
-            if (!deductStock(item.getSkuId(), item.getQuantity())) {
-                throw new ServiceException("扣减库存失败: skuId=" + item.getSkuId());
+    public boolean deductStockBatch(List<RemoteGoodsService.StockDeductDTO> items, String orderNo) {
+        // 请求级幂等：goods 侧 Redis SETNX 防同一订单重复扣
+        List<String> dedupKeys = new ArrayList<>();
+        try {
+            for (RemoteGoodsService.StockDeductDTO item : items) {
+                String dedupKey = CacheConstants.STOCK_DEDUCT_DEDUP_KEY + orderNo + ":" + item.getSkuId();
+                if (!redissonClient.getBucket(dedupKey).trySet("1", 7, TimeUnit.DAYS)) {
+                    log.info("重复扣减跳过（goods侧幂等）: orderNo={}, skuId={}", orderNo, item.getSkuId());
+                    continue;
+                }
+                dedupKeys.add(dedupKey);
+                if (!deductStock(item.getSkuId(), item.getQuantity())) {
+                    throw new ServiceException("扣减库存失败: skuId=" + item.getSkuId());
+                }
             }
+            return true;
+        } catch (Exception e) {
+            // DB 事务回滚 → 清理已设的 Redis 幂等标记，允许后续重试
+            for (String key : dedupKeys) {
+                redissonClient.getBucket(key).delete();
+            }
+            throw e;
         }
-        return true;
     }
 
     // ==================== 归还库存 ====================
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void releaseStockBatch(List<RemoteGoodsService.StockDeductDTO> items) {
-        for (RemoteGoodsService.StockDeductDTO item : items) {
-            releaseStock(item.getSkuId(), item.getQuantity());
+    public void releaseStockBatch(List<RemoteGoodsService.StockDeductDTO> items, String orderNo) {
+        // 请求级幂等：goods 侧 Redis SETNX 防同一订单重复归还
+        List<String> dedupKeys = new ArrayList<>();
+        try {
+            for (RemoteGoodsService.StockDeductDTO item : items) {
+                String dedupKey = CacheConstants.STOCK_RELEASE_DEDUP_KEY + orderNo + ":" + item.getSkuId();
+                if (!redissonClient.getBucket(dedupKey).trySet("1", 7, TimeUnit.DAYS)) {
+                    log.info("重复归还跳过（goods侧幂等）: orderNo={}, skuId={}", orderNo, item.getSkuId());
+                    continue;
+                }
+                dedupKeys.add(dedupKey);
+                releaseStock(item.getSkuId(), item.getQuantity());
+            }
+        } catch (Exception e) {
+            // DB 事务回滚 → 清理已设的 Redis 幂等标记，允许后续重试
+            for (String key : dedupKeys) {
+                redissonClient.getBucket(key).delete();
+            }
+            throw e;
         }
     }
 
@@ -172,9 +239,15 @@ public class ProductSkuServiceImpl extends ServiceImpl<ProductSkuMapper, Product
             }
             int rows = productSkuMapper.releaseStock(skuId, quantity, sku.getVersion());
             if (rows > 0) {
-                ProductSku updated = productSkuMapper.selectById(skuId);
-                redisStockService.syncStock(skuId, updated.getStock());
-                return true;
+                    ProductSku updated = productSkuMapper.selectById(skuId);
+                    redisStockService.syncStock(skuId, updated.getStock());
+                    // ponytail: SKU 缓存失效失败不影响库存变更（库存数据已在 DB/Redis 正确更新）
+                    try {
+                        skuCacheService.evictSku(skuId);
+                    } catch (Exception e) {
+                        log.warn("库存归还后SKU缓存失效失败: skuId={}", skuId, e);
+                    }
+                    return true;
             }
         }
         log.error("归还库存失败（乐观锁冲突）: skuId={}, qty={}", skuId, quantity);

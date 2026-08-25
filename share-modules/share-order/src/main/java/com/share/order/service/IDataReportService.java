@@ -6,6 +6,9 @@ import java.util.Map;
 /**
  * 平台数据报表 Service 接口
  *
+ * <p>非实体 CRUD 工具类，不继承 {@code IService}。
+ * 职责是跨库聚合查询（交易总览/趋势/排行），不是单一实体的增删改查。</p>
+ *
  * @author share
  */
 public interface IDataReportService {

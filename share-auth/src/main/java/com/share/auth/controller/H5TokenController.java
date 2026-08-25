@@ -32,6 +32,7 @@ public class H5TokenController {
     private SysLoginService sysLoginService;
 
     @GetMapping("/h5/login/{code}")
+    @PostMapping("/h5/login/{code}")
     public R<?> login(@PathVariable String code)
     {
         // 检查code是否为空

@@ -2,6 +2,7 @@ package com.share.order.api;
 
 import com.share.common.core.domain.R;
 import com.share.order.domain.vo.ReviewStatsDTO;
+import com.share.order.domain.vo.OrderReviewVO;
 import com.share.order.factory.RemoteOrderReviewFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,4 +28,7 @@ public interface RemoteOrderReviewService {
 
     @PostMapping("/inner/review/stats/batch")
     R<Map<Long, ReviewStatsDTO>> getReviewStatsBatch(@RequestBody List<Long> productIds);
+
+    @GetMapping("/inner/review/product/{productId}")
+    R<List<OrderReviewVO>> getProductReviews(@PathVariable("productId") Long productId);
 }

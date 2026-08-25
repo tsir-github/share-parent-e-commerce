@@ -11,15 +11,18 @@ import com.share.system.api.RemoteFileService;
 import com.share.system.api.domain.SysFile;
 import org.springframework.transaction.annotation.Transactional;
 import com.share.merchant.domain.MerchantUser;
+import com.share.merchant.domain.vo.MerchantInfoVO;
 import com.share.merchant.mapper.MerchantInfoMapper;
 import com.share.merchant.service.IMerchantInfoService;
 import com.share.merchant.service.IMerchantUserService;
+import com.share.merchant.service.IMerchantCacheService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,10 +35,13 @@ public class MerchantInfoServiceImpl extends ServiceImpl<MerchantInfoMapper, Mer
 
     private final IMerchantUserService merchantUserService;
     private final RemoteFileService remoteFileService;
+    private final IMerchantCacheService merchantCacheService;
 
-    public MerchantInfoServiceImpl(@Lazy IMerchantUserService merchantUserService, RemoteFileService remoteFileService) {
+    public MerchantInfoServiceImpl(@Lazy IMerchantUserService merchantUserService, RemoteFileService remoteFileService,
+                                    IMerchantCacheService merchantCacheService) {
         this.merchantUserService = merchantUserService;
         this.remoteFileService = remoteFileService;
+        this.merchantCacheService = merchantCacheService;
     }
 
     @Override
@@ -63,6 +69,7 @@ public class MerchantInfoServiceImpl extends ServiceImpl<MerchantInfoMapper, Mer
         update.setAuditRemark(null);
         update.setAuditTime(null);
         this.updateById(update);
+        merchantCacheService.evictMerchant(merchantId);
     }
 
     @Override
@@ -73,23 +80,33 @@ public class MerchantInfoServiceImpl extends ServiceImpl<MerchantInfoMapper, Mer
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void audit(MerchantInfo merchantInfo) {
+    public MerchantUser audit(MerchantInfo merchantInfo) {
         MerchantInfo existing = this.getById(merchantInfo.getId());
         if (existing == null) {
             throw new ServiceException("商家不存在");
         }
-        existing.setStatus(merchantInfo.getStatus());
-        existing.setAuditRemark(merchantInfo.getAuditRemark());
-        existing.setAuditTime(new Date());
-        this.updateById(existing);
+        // 使用 LambdaUpdateWrapper 更新状态，避免 updateById 并发回退
+        baseMapper.update(null, new LambdaUpdateWrapper<MerchantInfo>()
+                .eq(MerchantInfo::getId, existing.getId())
+                .set(MerchantInfo::getStatus, merchantInfo.getStatus())
+                .set(MerchantInfo::getAuditRemark, merchantInfo.getAuditRemark())
+                .set(MerchantInfo::getAuditTime, new Date()));
+        merchantCacheService.evictMerchant(existing.getId());
 
-        // 审核通过 → 自动创建商家登录账号
+        // 审核通过 → 自动创建商家登录账号（幂等：已有则跳过）
         if (MerchantStatus.ENABLED.equals(merchantInfo.getStatus())) {
+            MerchantUser existingUser = merchantUserService.getByMerchantId(existing.getId());
+            if (existingUser != null) {
+                return existingUser;
+            }
             MerchantUser user = merchantUserService.createMerchantUser(
                     existing.getId(), null, null);
-            existing.setUserId(user.getId());
-            this.updateById(existing);
+            baseMapper.update(null, new LambdaUpdateWrapper<MerchantInfo>()
+                    .eq(MerchantInfo::getId, existing.getId())
+                    .set(MerchantInfo::getUserId, user.getId()));
+            return user;
         }
+        return null;
     }
 
     @Override
@@ -123,6 +140,42 @@ public class MerchantInfoServiceImpl extends ServiceImpl<MerchantInfoMapper, Mer
         baseMapper.update(null, new LambdaUpdateWrapper<MerchantInfo>()
                 .eq(MerchantInfo::getId, merchantId)
                 .set(MerchantInfo::getLogo, url));
+        merchantCacheService.evictMerchant(merchantId);
         return url;
+    }
+
+    @Override
+    public void updateLogoUrl(Long merchantId, String logoUrl) {
+        if (merchantId == null) throw new ServiceException("未获取到商家信息");
+        baseMapper.update(null, new LambdaUpdateWrapper<MerchantInfo>()
+                .eq(MerchantInfo::getId, merchantId)
+                .set(MerchantInfo::getLogo, logoUrl));
+        merchantCacheService.evictMerchant(merchantId);
+    }
+
+    @Override
+    public List<MerchantInfoVO> selectListWithAccount(String name, String status) {
+        return baseMapper.selectListWithAccount(name, status);
+    }
+
+    @Override
+    public void updateStatus(Long id, String status) {
+        baseMapper.update(null, new LambdaUpdateWrapper<MerchantInfo>()
+                .eq(MerchantInfo::getId, id)
+                .set(MerchantInfo::getStatus, status));
+        merchantCacheService.evictMerchant(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminUpdate(MerchantInfo merchantInfo) {
+        baseMapper.update(null, new LambdaUpdateWrapper<MerchantInfo>()
+                .eq(MerchantInfo::getId, merchantInfo.getId())
+                .set(merchantInfo.getName() != null, MerchantInfo::getName, merchantInfo.getName())
+                .set(merchantInfo.getContactName() != null, MerchantInfo::getContactName, merchantInfo.getContactName())
+                .set(merchantInfo.getContactPhone() != null, MerchantInfo::getContactPhone, merchantInfo.getContactPhone())
+                .set(merchantInfo.getAddress() != null, MerchantInfo::getAddress, merchantInfo.getAddress())
+                .set(merchantInfo.getDescription() != null, MerchantInfo::getDescription, merchantInfo.getDescription()));
+        merchantCacheService.evictMerchant(merchantInfo.getId());
     }
 }

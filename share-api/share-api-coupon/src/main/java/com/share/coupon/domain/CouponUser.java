@@ -25,9 +25,9 @@ public class CouponUser extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 记录ID */
-    @Schema(description = "记录ID")
-    private Long id;
+    ///** 记录ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 用户ID */
     @Schema(description = "用户ID")

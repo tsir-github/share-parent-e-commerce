@@ -2,6 +2,7 @@ package com.share.payment.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.share.common.core.constant.ServiceNameConstants;
 import com.share.common.core.utils.uuid.IdUtils;
 import com.share.payment.config.WxPayConfig;
 import lombok.RequiredArgsConstructor;
@@ -117,7 +118,7 @@ public class WxPayUtil {
                     .header("Authorization", "WECHATPAY2-SHA256-RSA2048 " + token)
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
-                    .header("User-Agent", "share-payment")
+                    .header("User-Agent", ServiceNameConstants.PAYMENT_SERVICE)
                     .timeout(Duration.ofSeconds(30))
                     .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
                     .build();
@@ -141,7 +142,7 @@ public class WxPayUtil {
                     .uri(URI.create(url))
                     .header("Authorization", "WECHATPAY2-SHA256-RSA2048 " + token)
                     .header("Accept", "application/json")
-                    .header("User-Agent", "share-payment")
+                    .header("User-Agent", ServiceNameConstants.PAYMENT_SERVICE)
                     .timeout(Duration.ofSeconds(30))
                     .GET()
                     .build();

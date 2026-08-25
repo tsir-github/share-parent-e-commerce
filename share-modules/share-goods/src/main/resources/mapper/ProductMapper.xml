@@ -9,7 +9,7 @@
 
     <sql id="selectProductVo">
         select id, category_id, merchant_id, name, subtitle, description, main_image, unit,
-               min_price, max_price, total_stock, sales, status, is_new, is_hot,
+               min_price, max_price, total_stock, sales, status, is_new, is_hot, is_recommended,
                ext_json, create_by, create_time, update_by, update_time, del_flag, remark
         from product
     </sql>
@@ -23,6 +23,7 @@
             <if test="status != null and status != ''"> and status = #{status}</if>
             <if test="isNew != null and isNew != ''"> and is_new = #{isNew}</if>
             <if test="isHot != null and isHot != ''"> and is_hot = #{isHot}</if>
+            <if test="isRecommended != null and isRecommended != ''"> and is_recommended = #{isRecommended}</if>
             and del_flag = 0
         </where>
         order by create_time desc

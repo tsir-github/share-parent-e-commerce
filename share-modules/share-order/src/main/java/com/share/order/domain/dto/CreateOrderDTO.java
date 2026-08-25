@@ -27,6 +27,18 @@ public class CreateOrderDTO {
     @Schema(description = "优惠券ID")
     private Long couponId;
 
+    /** 秒杀活动ID（非空=秒杀订单，order_type='1'） */
+    @Schema(description = "秒杀活动ID")
+    private Long seckillActivityId;
+
+    /** 秒杀价（秒杀订单时传递，覆盖商品原价） */
+    @Schema(description = "秒杀价")
+    private java.math.BigDecimal seckillPrice;
+
+    /** 预生成订单号（秒杀订单时传递，防止 MQ 重投创建重复订单） */
+    @Schema(description = "预生成订单号")
+    private String orderNo;
+
     /** 收货人姓名 */
     @NotBlank(message = "收货人姓名不能为空")
     @Schema(description = "收货人姓名")

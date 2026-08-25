@@ -7,7 +7,7 @@
       :layout="layout"
       :page-sizes="pageSizes"
       :pager-count="pagerCount"
-      :total="total"
+      :total="totalNumber"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
     />
@@ -20,7 +20,7 @@ import { scrollTo } from '@/utils/scroll-to'
 const props = defineProps({
   total: {
     required: true,
-    type: Number
+    type: [Number, String]
   },
   page: {
     type: Number,
@@ -60,6 +60,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits();
+const totalNumber = computed(() => Number(props.total))
 const currentPage = computed({
   get() {
     return props.page
@@ -77,7 +78,7 @@ const pageSize = computed({
   }
 })
 function handleSizeChange(val) {
-  if (currentPage.value * val > props.total) {
+  if (currentPage.value * val > totalNumber.value) {
     currentPage.value = 1
   }
   emit('pagination', { page: currentPage.value, limit: val })

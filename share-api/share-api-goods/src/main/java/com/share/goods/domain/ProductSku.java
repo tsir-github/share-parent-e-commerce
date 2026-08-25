@@ -19,9 +19,9 @@ public class ProductSku extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** SKU ID */
-    @Schema(description = "SKU ID")
-    private Long id;
+    ///** SKU ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 商品ID */
     @Schema(description = "商品ID")

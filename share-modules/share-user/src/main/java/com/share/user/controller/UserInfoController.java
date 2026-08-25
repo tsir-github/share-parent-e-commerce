@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
 
-import com.share.common.core.domain.R;
 import com.share.common.log.annotation.Log;
 import com.share.user.domain.UserInfo;
 import jakarta.servlet.http.HttpServletResponse;
@@ -121,8 +120,8 @@ public class UserInfoController extends BaseController
     @Operation(summary = "用户仪表盘统计")
     @RequiresPermissions("user:userInfo:list")
     @GetMapping("/dashboard")
-    public R<Map<String, Object>> dashboard() {
-        return R.ok(userInfoService.getDashboardStats());
+    public AjaxResult dashboard() {
+        return success(userInfoService.getDashboardStats());
     }
 
     /**

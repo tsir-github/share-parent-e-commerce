@@ -2,6 +2,7 @@ package com.share.goods.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.share.goods.domain.ProductSku;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public interface ProductSkuMapper extends BaseMapper<ProductSku> {
     @Update("update product_sku set stock = stock - #{quantity}, sales = sales + #{quantity}, " +
             "version = version + 1 " +
             "where id = #{skuId} and version = #{version} and stock >= #{quantity} and del_flag = 0")
-    int deductStock(Long skuId, Integer quantity, Integer version);
+    int deductStock(@Param("skuId") Long skuId, @Param("quantity") Integer quantity, @Param("version") Integer version);
 
     /**
      * 乐观锁归还库存（取消订单回滚）
@@ -36,5 +37,5 @@ public interface ProductSkuMapper extends BaseMapper<ProductSku> {
     @Update("update product_sku set stock = stock + #{quantity}, sales = sales - #{quantity}, " +
             "version = version + 1 " +
             "where id = #{skuId} and version = #{version} and del_flag = 0")
-    int releaseStock(Long skuId, Integer quantity, Integer version);
+    int releaseStock(@Param("skuId") Long skuId, @Param("quantity") Integer quantity, @Param("version") Integer version);
 }

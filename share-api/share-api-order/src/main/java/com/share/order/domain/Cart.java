@@ -17,9 +17,9 @@ public class Cart extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 购物车ID */
-    @Schema(description = "购物车ID")
-    private Long id;
+    ///** 购物车ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 用户ID */
     @Schema(description = "用户ID")

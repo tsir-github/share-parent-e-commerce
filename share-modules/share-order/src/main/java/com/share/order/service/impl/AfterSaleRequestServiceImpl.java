@@ -186,6 +186,7 @@ public class AfterSaleRequestServiceImpl extends ServiceImpl<AfterSaleRequestMap
         // 创建售后申请
         AfterSaleRequest request = new AfterSaleRequest();
         request.setOrderNo(orderNo);
+        request.setOrderId(order.getId());
         request.setUserId(userId);
         request.setMerchantId(order.getSupplierId()); // supplierId 即商家ID
         request.setRefundAmount(applyAmount);
@@ -258,5 +259,12 @@ public class AfterSaleRequestServiceImpl extends ServiceImpl<AfterSaleRequestMap
     @Override
     public AfterSaleRequest getById(Long id) {
         return baseMapper.selectById(id);
+    }
+
+    @Override
+    public long countPendingByMerchant(Long merchantId) {
+        return baseMapper.selectCount(new LambdaQueryWrapper<AfterSaleRequest>()
+                .eq(AfterSaleRequest::getMerchantId, merchantId)
+                .eq(AfterSaleRequest::getAuditStatus, AfterSaleStatus.PENDING));
     }
 }

@@ -7,9 +7,7 @@ import com.share.order.domain.OrderBill;
  * 订单账单Mapper接口
  *
  * @author atguigu
- * @date 2024-10-25
  */
-public interface OrderBillMapper extends BaseMapper<OrderBill>
-{
+public interface OrderBillMapper extends BaseMapper<OrderBill> {
 
 }

@@ -19,9 +19,9 @@ public class UserAddress extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 地址ID */
-    @Schema(description = "地址ID")
-    private Long id;
+    ///** 地址ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 用户ID */
     @Schema(description = "用户ID")

@@ -2,6 +2,7 @@ package com.share.user.factory;
 
 import com.share.common.core.domain.R;
 import com.share.user.api.RemoteUserService;
+import com.share.user.domain.dto.WxLoginResultDTO;
 
 import java.util.Map;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class RemoteUserFallbackFactory implements FallbackFactory<RemoteUserServ
         return new RemoteUserService()
         {
             @Override
-            public R<com.share.user.domain.UserInfo> wxLogin(String code)
+            public R<WxLoginResultDTO> wxLogin(String code)
             {
                 return R.fail("微信登录失败:" + throwable.getMessage());
             }

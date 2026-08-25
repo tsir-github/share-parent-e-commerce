@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import com.share.common.core.domain.R;
@@ -30,7 +31,7 @@ public class SysFileController
      * 文件上传请求
      */
     @PostMapping("upload")
-    public R<SysFile> upload(MultipartFile file)
+    public R<SysFile> upload(@RequestParam("file") MultipartFile file)
     {
         try
         {

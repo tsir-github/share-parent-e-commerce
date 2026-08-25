@@ -41,12 +41,12 @@ public interface IProductSkuService extends IService<ProductSku> {
     boolean releaseStock(Long skuId, Integer quantity);
 
     /**
-     * 批量扣减库存
+     * 批量扣减库存（orderNo 用于请求级幂等 → goods 侧 Redis SETNX 防重复扣）
      */
-    boolean deductStockBatch(List<RemoteGoodsService.StockDeductDTO> items);
+    boolean deductStockBatch(List<RemoteGoodsService.StockDeductDTO> items, String orderNo);
 
     /**
-     * 批量归还库存
+     * 批量归还库存（orderNo 用于请求级幂等）
      */
-    void releaseStockBatch(List<RemoteGoodsService.StockDeductDTO> items);
+    void releaseStockBatch(List<RemoteGoodsService.StockDeductDTO> items, String orderNo);
 }

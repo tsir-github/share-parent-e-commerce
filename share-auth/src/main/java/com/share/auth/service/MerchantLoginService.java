@@ -10,6 +10,8 @@ import com.share.system.api.model.LoginUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+
 /**
  * 商家登录 Service
  *
@@ -45,12 +47,17 @@ public class MerchantLoginService {
 
         MerchantUser merchantUser = result.getData();
 
-        // 封装 LoginUser
+        // 封装 LoginUser（与管理员登录模型一致）
         LoginUser loginUser = new LoginUser();
         loginUser.setUserid(merchantUser.getId());
         loginUser.setUsername(merchantUser.getUsername());
         loginUser.setMerchantId(merchantUser.getMerchantId());
         loginUser.setStatus("0");
+        // 商家角色不需要 RuoYi 菜单权限，设为 *:*:* 确保与前端一致、API可调
+        HashSet<String> perms = new HashSet<>();
+        perms.add("*:*:*");
+        loginUser.setPermissions(perms);
+        loginUser.setRoles(new HashSet<>());
         return loginUser;
     }
 }

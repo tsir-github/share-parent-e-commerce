@@ -18,8 +18,28 @@ import { saveAs } from 'file-saver'
 import useUserStore from '@/store/modules/user'
 
 let downloadLoadingInstance;
-// 控制"重新登录"弹窗只显示一次（防止响应多个 401 时弹出 N 个窗口）
+// 控制"重新登录"弹窗只显示一次
 export let isRelogin = { show: false };
+
+// token 过期统一处理——区分商家/管理员跳转
+function handleTokenExpired() {
+  if (isRelogin.show) return
+  isRelogin.show = true
+  const isMerchant = !!localStorage.getItem('merchantInfo')
+  ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
+    confirmButtonText: '重新登录',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    isRelogin.show = false
+    if (isMerchant) {
+      localStorage.removeItem('merchantInfo')
+      location.href = '/merchant/login'
+    } else {
+      useUserStore().logOut().then(() => { location.href = '/index' })
+    }
+  }).catch(() => { isRelogin.show = false })
+}
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 
@@ -111,26 +131,15 @@ service.interceptors.response.use(res => {
 
     // ★ code === 401：未登录或 token 过期
     if (code === 401) {
-      if (!isRelogin.show) {
-        isRelogin.show = true;
-        ElMessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          isRelogin.show = false;
-          // 调用 logout 清空 Cookie 中的 token，跳转到登录页
-          useUserStore().logOut().then(() => {
-            location.href = '/index';
-          })
-      }).catch(() => {
-        isRelogin.show = false;
-      });
-    }
+      handleTokenExpired()
       return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
 
-    // ★ code === 500：服务端异常
+    // ★ code === 500：服务端异常。但"无效的token"也应触发重新登录
     } else if (code === 500) {
+      if (msg && (msg.includes('无效的token') || msg.includes('令牌') || msg.includes('登录'))) {
+        handleTokenExpired()
+        return Promise.reject('token已过期')
+      }
       ElMessage({ message: msg, type: 'error' })
       return Promise.reject(new Error(msg))
 

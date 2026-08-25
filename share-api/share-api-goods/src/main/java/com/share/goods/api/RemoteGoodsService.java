@@ -46,10 +46,13 @@ public interface RemoteGoodsService {
     public static class StockDeductDTO {
         private Long skuId;
         private Integer quantity;
+        private String orderNo;
 
         public Long getSkuId() { return skuId; }
         public void setSkuId(Long skuId) { this.skuId = skuId; }
         public Integer getQuantity() { return quantity; }
         public void setQuantity(Integer quantity) { this.quantity = quantity; }
+        public String getOrderNo() { return orderNo; }
+        public void setOrderNo(String orderNo) { this.orderNo = orderNo; }
     }
 }

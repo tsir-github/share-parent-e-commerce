@@ -4,6 +4,10 @@ server:
 
 # Spring
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   application:
     # 应用名称
     name: share-file

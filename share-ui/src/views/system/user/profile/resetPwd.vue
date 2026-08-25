@@ -18,6 +18,11 @@
 
 <script setup>
 import { updateUserPwd } from "@/api/system/user";
+import { updatePassword } from "@/api/merchant/dashboard";
+
+const props = defineProps({
+  isMerchant: { type: Boolean, default: false }
+})
 
 const { proxy } = getCurrentInstance();
 
@@ -44,7 +49,10 @@ const rules = ref({
 function submit() {
   proxy.$refs.pwdRef.validate(valid => {
     if (valid) {
-      updateUserPwd(user.oldPassword, user.newPassword).then(response => {
+      const apiCall = props.isMerchant
+        ? updatePassword({ oldPassword: user.oldPassword, newPassword: user.newPassword })
+        : updateUserPwd(user.oldPassword, user.newPassword);
+      apiCall.then(response => {
         proxy.$modal.msgSuccess("修改成功");
       });
     }

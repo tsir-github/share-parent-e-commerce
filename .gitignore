@@ -74,3 +74,9 @@ opencode*.tgz
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+# 本地工具产物与临时文件
+.mcp-artifacts/
+WeChatProjects*/
+share-ui/vite.config.js.timestamp-*.mjs
+login-page.txt
+merchant-page-snapshot.md

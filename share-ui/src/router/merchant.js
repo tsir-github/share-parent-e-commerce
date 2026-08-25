@@ -66,10 +66,17 @@ const merchantRoutes = [
         meta: { title: '售后管理', icon: 'refund' }
       },
       {
-        path: 'setting',
-        component: () => import('@/views/merchant/setting/index.vue'),
-        name: 'MerchantSetting',
-        meta: { title: '店铺设置', icon: 'setting' }
+        path: 'coupon',
+        component: () => import('@/views/merchant/coupon/index.vue'),
+        name: 'MerchantCoupon',
+        meta: { title: '优惠券管理', icon: 'coupon' }
+      },
+      {
+        path: 'profile',
+        component: () => import('@/views/merchant/profile/index.vue'),
+        name: 'MerchantProfile',
+        hidden: true,
+        meta: { title: '个人中心', activeMenu: '/merchant/dashboard' }
       }
     ]
   }

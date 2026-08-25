@@ -1,6 +1,7 @@
 package com.share.coupon.domain;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.share.common.core.web.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -26,9 +27,9 @@ public class CouponTemplate extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 模板ID */
-    @Schema(description = "模板ID")
-    private Long id;
+    ///** 模板ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 优惠券名称 */
     @Schema(description = "优惠券名称")
@@ -67,10 +68,12 @@ public class CouponTemplate extends BaseEntity {
     private Integer limitPerUser;
 
     /** 有效期开始时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Schema(description = "有效期开始时间")
     private Date startTime;
 
     /** 有效期结束时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Schema(description = "有效期结束时间")
     private Date endTime;
 

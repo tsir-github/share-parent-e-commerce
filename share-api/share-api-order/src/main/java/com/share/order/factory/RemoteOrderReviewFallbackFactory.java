@@ -3,6 +3,7 @@ package com.share.order.factory;
 import com.share.common.core.domain.R;
 import com.share.order.api.RemoteOrderReviewService;
 import com.share.order.domain.vo.ReviewStatsDTO;
+import com.share.order.domain.vo.OrderReviewVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FallbackFactory;
@@ -33,6 +34,11 @@ public class RemoteOrderReviewFallbackFactory implements FallbackFactory<RemoteO
             @Override
             public R<Map<Long, ReviewStatsDTO>> getReviewStatsBatch(List<Long> productIds) {
                 return R.fail("批量获取评价统计失败:" + throwable.getMessage());
+            }
+
+            @Override
+            public R<List<OrderReviewVO>> getProductReviews(Long productId) {
+                return R.fail("获取商品评价失败:" + throwable.getMessage());
             }
         };
     }

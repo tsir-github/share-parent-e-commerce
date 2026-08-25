@@ -45,4 +45,28 @@ public class UserProfileController {
         userInfoService.updateNickname(nickname.trim());
         return R.ok();
     }
+
+    @Operation(summary = "修改性别")
+    @RequiresLogin
+    @PutMapping("/profile/gender")
+    public R<Void> updateGender(@RequestBody Map<String, String> body) {
+        String gender = body.get("gender");
+        if (!"0".equals(gender) && !"1".equals(gender)) {
+            return R.fail("无效的性别值（0=男 1=女）");
+        }
+        userInfoService.updateGender(gender);
+        return R.ok();
+    }
+
+    @Operation(summary = "修改手机号")
+    @RequiresLogin
+    @PutMapping("/profile/phone")
+    public R<Void> updatePhone(@RequestBody Map<String, String> body) {
+        String phone = body.get("phone");
+        if (phone == null || !phone.matches("^1\\d{10}$")) {
+            return R.fail("手机号格式不正确");
+        }
+        userInfoService.updatePhone(phone);
+        return R.ok();
+    }
 }

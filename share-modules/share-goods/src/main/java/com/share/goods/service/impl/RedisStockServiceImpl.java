@@ -1,5 +1,6 @@
 package com.share.goods.service.impl;
 
+import com.share.common.core.constant.CacheConstants;
 import com.share.goods.service.IRedisStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisStockServiceImpl implements IRedisStockService {
 
-    private static final String STOCK_KEY_PREFIX = "stock:sku:";
     private static final int STOCK_TTL_HOURS = 24;
 
     private final RedissonClient redissonClient;
@@ -64,7 +64,7 @@ public class RedisStockServiceImpl implements IRedisStockService {
 
     @Override
     public boolean preDeduct(Long skuId, int quantity) {
-        String key = STOCK_KEY_PREFIX + skuId;
+        String key = CacheConstants.STOCK_SKU_KEY + skuId;
         // ponytail: 缓存未命中时依赖 DB 乐观锁兜底，不在此处同步
         RScript script = redissonClient.getScript(LongCodec.INSTANCE);
         Long result = script.eval(
@@ -79,7 +79,7 @@ public class RedisStockServiceImpl implements IRedisStockService {
 
     @Override
     public void preRelease(Long skuId, int quantity) {
-        String key = STOCK_KEY_PREFIX + skuId;
+        String key = CacheConstants.STOCK_SKU_KEY + skuId;
         RScript script = redissonClient.getScript(LongCodec.INSTANCE);
         script.eval(
                 RScript.Mode.READ_WRITE,
@@ -93,8 +93,15 @@ public class RedisStockServiceImpl implements IRedisStockService {
 
     @Override
     public void syncStock(Long skuId, int stock) {
-        String key = STOCK_KEY_PREFIX + skuId;
+        String key = CacheConstants.STOCK_SKU_KEY + skuId;
         redisTemplate.opsForValue().set(key, stock, STOCK_TTL_HOURS, TimeUnit.HOURS);
         log.debug("Redis 同步库存: skuId={}, stock={}", skuId, stock);
+    }
+
+    @Override
+    public void deleteStock(Long skuId) {
+        String key = CacheConstants.STOCK_SKU_KEY + skuId;
+        redisTemplate.delete(key);
+        log.debug("Redis 删除库存缓存: skuId={}", skuId);
     }
 }

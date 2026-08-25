@@ -45,9 +45,9 @@ public class MerchantProductController {
     @Operation(summary = "商家新增商品")
     @RequiresLogin
     @PostMapping
-    public R<Void> add(@RequestBody Product product) {
-        merchantProductService.addMerchantProduct(product, SecurityUtils.getMerchantId());
-        return R.ok();
+    public R<Long> add(@RequestBody Product product) {
+        Long id = merchantProductService.addMerchantProduct(product, SecurityUtils.getMerchantId());
+        return R.ok(id);
     }
 
     @Operation(summary = "商家修改商品")

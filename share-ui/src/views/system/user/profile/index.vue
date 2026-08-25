@@ -53,10 +53,10 @@
                      <userInfo :user="state.user" />
                   </el-tab-pane>
                   <el-tab-pane label="修改密码" name="resetPwd">
-                     <resetPwd />
+                     <resetPwd :isMerchant="false" />
                   </el-tab-pane>
                </el-tabs>
-            </el-card>
+             </el-card>
          </el-col>
       </el-row>
    </div>

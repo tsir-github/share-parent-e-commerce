@@ -5,6 +5,9 @@ import com.share.goods.domain.Product;
 /**
  * 商品缓存服务接口
  *
+ * <p>非实体 CRUD 工具类，不继承 {@code IService}。
+ * 职责是缓存管理（Cache-Aside 读写 + 失效），不是实体增删改查。</p>
+ *
  * @author share
  */
 public interface IProductCacheService {

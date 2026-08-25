@@ -27,9 +27,9 @@ public class PaymentInfo extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
-    @Schema(description = "编号")
-    private Long id;
+    ///** 编号 */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 用户ID */
     @Schema(description = "用户ID")

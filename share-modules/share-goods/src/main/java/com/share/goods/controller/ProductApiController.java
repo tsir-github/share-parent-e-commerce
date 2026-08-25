@@ -6,6 +6,8 @@ import com.share.common.core.domain.R;
 import com.share.common.core.utils.StringUtils;
 import com.share.goods.domain.Product;
 import com.share.goods.service.IProductCacheService;
+import com.share.goods.domain.ProductSku;
+import com.share.goods.service.IProductSkuService;
 import com.share.goods.service.IProductService;
 import com.share.goods.service.IUserFavoriteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,12 +34,14 @@ public class ProductApiController {
     private final IProductService productService;
     private final IProductCacheService productCacheService;
     private final IUserFavoriteService userFavoriteService;
+    private final IProductSkuService productSkuService;
 
     @Operation(summary = "商品列表")
     @GetMapping("/list")
     public R<List<Product>> list(@RequestParam(required = false) String name,
-                                 @RequestParam(required = false) Long categoryId) {
-        List<Product> products = productService.selectListedProducts(name, categoryId);
+                                 @RequestParam(required = false) Long categoryId,
+                                 @RequestParam(required = false) String tag) {
+        List<Product> products = productService.selectListedProducts(name, categoryId, tag);
         productService.populateReviewStats(products);
         return R.ok(products);
     }
@@ -56,6 +60,13 @@ public class ProductApiController {
         productService.fillProductReviewStats(product);
         result.put("avgRating", product.getAvgRating());
         result.put("reviewCount", product.getReviewCount());
+        // 附带SKU数据
+        List<ProductSku> skus = productSkuService.selectSkuByProductId(id);
+        result.put("skus", skus);
+        // 附带商家信息（通过 productService 获取，遵循分层架构）
+        result.put("merchant", productService.getMerchantInfo(product.getMerchantId()));
+        // 附带最近评价
+        result.put("reviews", productService.getProductReviews(id));
         return R.ok(result);
     }
 
@@ -77,5 +88,18 @@ public class ProductApiController {
         result.put("total", pageInfo.getTotal());
         result.put("rows", pageInfo.getList());
         return R.ok(result);
+    }
+
+    @Operation(summary = "按商家查最近新品")
+    @GetMapping("/listByMerchant")
+    public R<List<Product>> listByMerchant(@RequestParam Long merchantId,
+                                            @RequestParam(defaultValue = "3") int size) {
+        return R.ok(productService.selectByMerchantId(merchantId, size));
+    }
+
+    @Operation(summary = "商家店铺统计")
+    @GetMapping("/merchantStats")
+    public R<Map<String, Object>> merchantStats(@RequestParam Long merchantId) {
+        return R.ok(productService.getMerchantStats(merchantId));
     }
 }

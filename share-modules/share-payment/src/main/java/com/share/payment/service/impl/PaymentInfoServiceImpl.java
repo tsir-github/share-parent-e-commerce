@@ -7,6 +7,7 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.share.common.core.exception.ServiceException;
 import com.share.common.core.utils.uuid.IdUtils;
 import com.share.payment.config.WxPayConfig;
+import com.share.common.core.constant.CacheConstants;
 import com.share.common.core.constant.PaymentStatus;
 import com.share.payment.domain.PaymentInfo;
 import com.share.payment.mapper.PaymentInfoMapper;
@@ -60,7 +61,7 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
     private final RedissonClient redissonClient;
     private final ObjectMapper objectMapper;
 
-    private static final String PAYMENT_LOCK_KEY_PREFIX = "payment:lock:";
+
 
     @Override
     public Integer getPaymentStatusByOrderNo(String orderNo) {
@@ -73,7 +74,7 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
     @Transactional(rollbackFor = Exception.class)
     public Map<String, String> createPayment(String orderNo, Long userId, BigDecimal amount,
                                              String description, String openid) {
-        RLock lock = redissonClient.getLock(PAYMENT_LOCK_KEY_PREFIX + orderNo);
+        RLock lock = redissonClient.getLock(CacheConstants.PAYMENT_LOCK_KEY + orderNo);
         boolean locked = false;
         try {
             // 分布式锁在事务前获取，控制并发创建
@@ -137,7 +138,15 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
     private Map<String, String> mockPayParams(PaymentInfo paymentInfo) {
         String mockPrepayId = "mock_prepay_id_" + IdUtils.fastSimpleUUID();
         log.info("[MOCK] 模拟统一下单: orderNo={}, prepayId={}", paymentInfo.getOrderNo(), mockPrepayId);
-        return wxPayUtil.buildPayParams(mockPrepayId);
+        // ponytail: mock 模式返回硬编码参数，不调签名（避免加载商户私钥失败）
+        return Map.of(
+            "appId", wxPayConfig.getAppId(),
+            "timeStamp", String.valueOf(System.currentTimeMillis() / 1000),
+            "nonceStr", IdUtils.fastSimpleUUID(),
+            "package", "prepay_id=" + mockPrepayId,
+            "signType", "RSA",
+            "paySign", "MOCK_SIGN"
+        );
     }
 
     @Override
@@ -189,7 +198,7 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
             throw new ServiceException("非 mock 模式不可使用模拟回调");
         }
 
-        RLock lock = redissonClient.getLock(PAYMENT_LOCK_KEY_PREFIX + orderNo);
+        RLock lock = redissonClient.getLock(CacheConstants.PAYMENT_LOCK_KEY + orderNo);
         boolean locked = false;
         try {
             locked = lock.tryLock(5, 30, TimeUnit.SECONDS);
@@ -200,7 +209,17 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
             PaymentInfo paymentInfo = this.getOne(new LambdaQueryWrapper<PaymentInfo>()
                     .eq(PaymentInfo::getOrderNo, orderNo));
             if (paymentInfo == null) {
-                throw new ServiceException("支付记录不存在: " + orderNo);
+                // ponytail: mock 模式自动补建支付记录，避免要求前端先调 createPayment
+                paymentInfo = PaymentInfo.builder()
+                        .orderNo(orderNo)
+                        .userId(0L)
+                        .amount(java.math.BigDecimal.ZERO)
+                        .content("mock 自动创建")
+                        .paymentStatus(PaymentStatus.UNPAID)
+                        .build();
+                paymentInfo.setCreateTime(new Date());
+                this.save(paymentInfo);
+                log.info("[MOCK] 自动创建支付记录: orderNo={}", orderNo);
             }
 
             String mockTransactionId = "mock_txn_" + IdUtils.fastSimpleUUID().substring(0, 16);
@@ -262,7 +281,7 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void refund(String orderNo, BigDecimal amount, String reason) {
-        RLock lock = redissonClient.getLock(PAYMENT_LOCK_KEY_PREFIX + orderNo);
+        RLock lock = redissonClient.getLock(CacheConstants.PAYMENT_LOCK_KEY + orderNo);
         boolean locked = false;
         try {
             locked = lock.tryLock(5, 30, TimeUnit.SECONDS);

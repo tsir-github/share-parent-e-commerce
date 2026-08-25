@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-const prefix = '/api/v1/merchant/order'
+const prefix = '/order/api/v1/merchant/order'
 
 export function listOrder(query) {
   return request({ url: prefix + '/list', method: 'get', params: query })

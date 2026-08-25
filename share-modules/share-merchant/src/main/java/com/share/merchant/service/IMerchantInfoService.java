@@ -2,8 +2,11 @@ package com.share.merchant.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.share.merchant.domain.MerchantInfo;
+import com.share.merchant.domain.MerchantUser;
+import com.share.merchant.domain.vo.MerchantInfoVO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,8 +25,9 @@ public interface IMerchantInfoService extends IService<MerchantInfo> {
      * 审核商家
      *
      * @param merchantInfo 审核信息（含 id、status、auditRemark）
+     * @return 创建的商家用户（审核通过时），否则 null
      */
-    void audit(MerchantInfo merchantInfo);
+    MerchantUser audit(MerchantInfo merchantInfo);
 
     /**
      * 获取商家店铺资料（含空值校验）
@@ -56,4 +60,24 @@ public interface IMerchantInfoService extends IService<MerchantInfo> {
      * @return 新的Logo URL
      */
     String updateLogo(Long merchantId, MultipartFile file);
+
+    /**
+     * 通过URL更新店铺Logo（前端先上传到文件服务后传URL）
+     */
+    void updateLogoUrl(Long merchantId, String logoUrl);
+
+    /**
+     * 查询商家列表（含关联账号信息）
+     */
+    List<MerchantInfoVO> selectListWithAccount(String name, String status);
+
+    /**
+     * 更新商家状态
+     */
+    void updateStatus(Long id, String status);
+
+    /**
+     * 管理员编辑商家基本信息（只更新编辑相关字段，不碰状态）
+     */
+    void adminUpdate(MerchantInfo merchantInfo);
 }

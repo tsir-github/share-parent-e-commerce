@@ -9,5 +9,5 @@ export function getUserStats() {
 }
 
 export function getMerchantStats() {
-  return request({ url: '/merchant/merchant/dashboard', method: 'get' })
+  return request({ url: '/merchant/merchantInfo/dashboard', method: 'get' })
 }

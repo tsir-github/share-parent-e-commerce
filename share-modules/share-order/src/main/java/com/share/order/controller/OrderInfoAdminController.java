@@ -1,6 +1,5 @@
 package com.share.order.controller;
 
-import com.share.common.core.domain.R;
 import com.share.common.core.web.controller.BaseController;
 import com.share.common.core.web.domain.AjaxResult;
 import com.share.common.core.web.page.TableDataInfo;
@@ -59,7 +58,7 @@ public class OrderInfoAdminController extends BaseController {
     @Operation(summary = "订单仪表盘统计")
     @RequiresPermissions("order:orderInfo:list")
     @GetMapping("/dashboard")
-    public R<Map<String, Object>> dashboard() {
-        return R.ok(orderInfoService.getDashboardStats());
+    public AjaxResult dashboard() {
+        return success(orderInfoService.getDashboardStats());
     }
 }

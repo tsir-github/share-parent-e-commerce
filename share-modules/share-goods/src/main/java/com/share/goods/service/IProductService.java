@@ -5,6 +5,8 @@ import com.share.goods.domain.Product;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import com.share.order.domain.vo.OrderReviewVO;
 
 /**
  * 商品 Service 接口
@@ -21,7 +23,7 @@ public interface IProductService extends IService<Product> {
     /**
      * 查询上架商品列表（C端浏览）
      */
-    List<Product> selectListedProducts(String name, Long categoryId);
+    List<Product> selectListedProducts(String name, Long categoryId, String tag);
 
     /**
      * 获取上架商品详情（C端浏览，含缓存）
@@ -51,4 +53,20 @@ public interface IProductService extends IService<Product> {
      * 填充单个商品评价统计
      */
     void fillProductReviewStats(Product product);
+    /**
+     * 获取商品关联商家信息（Feign 降级返回 null）
+     */
+    Object getMerchantInfo(Long merchantId);
+
+    List<OrderReviewVO> getProductReviews(Long productId);
+
+    /**
+     * 按商家查询最近新品（C端）
+     */
+    List<Product> selectByMerchantId(Long merchantId, int limit);
+
+    /**
+     * 获取商家统计数据（商品数+总销量）
+     */
+    Map<String, Object> getMerchantStats(Long merchantId);
 }

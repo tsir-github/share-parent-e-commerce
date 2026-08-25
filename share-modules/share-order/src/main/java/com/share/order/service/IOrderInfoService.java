@@ -32,4 +32,28 @@ public interface IOrderInfoService extends IService<OrderInfo> {
      * @return 包含 totalOrders, todayOrders, pendingOrders, totalRevenue, todayRevenue 的 Map
      */
     Map<String, Object> getDashboardStats();
+
+    /**
+     * 统计商家今日待发货订单数
+     *
+     * @param merchantId 商家ID
+     * @return 今日待发货订单数
+     */
+    long countTodayOrders(Long merchantId);
+
+    /**
+     * 统计商家今日待发货订单销售额
+     *
+     * @param merchantId 商家ID
+     * @return 今日待发货订单总金额
+     */
+    java.math.BigDecimal sumTodaySales(Long merchantId);
+
+    /**
+     * 统计商家待发货订单总数
+     *
+     * @param merchantId 商家ID
+     * @return 待发货订单总数
+     */
+    long countPendingDelivery(Long merchantId);
 }

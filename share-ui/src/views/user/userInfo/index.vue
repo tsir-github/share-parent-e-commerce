@@ -9,8 +9,8 @@
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="用户状态" clearable style="width: 200px">
-          <el-option label="正常" value="1" />
-          <el-option label="禁用" value="2" />
+          <el-option label="正常" value="0" />
+          <el-option label="禁用" value="1" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -43,7 +43,7 @@
       </el-table-column>
       <el-table-column label="状态" align="center" width="80">
         <template #default="scope">
-          <el-switch v-model="scope.row.status" active-value="1" inactive-value="2" @change="handleStatusChange(scope.row)" />
+          <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" @change="handleStatusChange(scope.row)" />
         </template>
       </el-table-column>
       <el-table-column label="最后登录IP" align="center" prop="lastLoginIp" width="140" />
@@ -83,8 +83,8 @@
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="form.status">
-            <el-radio value="1">正常</el-radio>
-            <el-radio value="2">禁用</el-radio>
+            <el-radio value="0">正常</el-radio>
+            <el-radio value="1">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -154,13 +154,13 @@ function handleSelectionChange(selection) {
 }
 
 function handleStatusChange(row) {
-  const text = row.status === '1' ? '启用' : '停用'
+  const text = row.status === '0' ? '启用' : '停用'
   proxy.$modal.confirm('确认要"' + text + '""' + row.nickname + '"用户吗?').then(() => {
     return updateUserInfo(row)
   }).then(() => {
     proxy.$modal.msgSuccess(text + '成功')
   }).catch(() => {
-    row.status = row.status === '1' ? '2' : '1'
+    row.status = row.status === '0' ? '1' : '0'
   })
 }
 
@@ -170,7 +170,7 @@ function reset() {
     nickname: undefined,
     phone: undefined,
     gender: undefined,
-    status: '1'
+    status: '0'
   }
   proxy.resetForm('userInfoRef')
 }

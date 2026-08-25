@@ -9,6 +9,9 @@ import com.share.gateway.handler.SentinelFallbackHandler;
 /**
  * 网关限流配置
  *
+ * <p>sentinelGatewayFilter 由 SentinelSCGAutoConfiguration 自动配置，
+ * 此处不再手动声明，避免 Bean 名冲突。</p>
+ *
  * @author share
  */
 @Configuration

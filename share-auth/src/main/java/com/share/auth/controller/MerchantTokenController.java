@@ -24,7 +24,7 @@ import java.util.Map;
  * @author share
  */
 @RestController
-@RequestMapping("/auth/merchant")
+@RequestMapping("/merchant")
 @RequiredArgsConstructor
 public class MerchantTokenController {
 

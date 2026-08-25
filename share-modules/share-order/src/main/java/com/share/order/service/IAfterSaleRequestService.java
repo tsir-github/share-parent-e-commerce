@@ -64,4 +64,12 @@ public interface IAfterSaleRequestService extends IService<AfterSaleRequest> {
      * 根据ID查询售后申请
      */
     AfterSaleRequest getById(Long id);
+
+    /**
+     * 统计商家待审核售后申请数
+     *
+     * @param merchantId 商家ID
+     * @return 待审核售后申请数
+     */
+    long countPendingByMerchant(Long merchantId);
 }

@@ -151,6 +151,21 @@ public class JwtUtils
     }
 
     /**
+     * 从 JWT 中取出商家ID
+     */
+    public static String getMerchantId(String token) {
+        Claims claims = parseToken(token);
+        return getValue(claims, SecurityConstants.DETAILS_MERCHANT_ID);
+    }
+
+    /**
+     * 从已解析的 Claims 中取出商家ID
+     */
+    public static String getMerchantId(Claims claims) {
+        return getValue(claims, SecurityConstants.DETAILS_MERCHANT_ID);
+    }
+
+    /**
      * 从 Claims 中安全地取出指定 key 的值
      *
      * @param claims JWT 的 Payload

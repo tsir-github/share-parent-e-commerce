@@ -111,6 +111,24 @@ export const businessRoutes = [
         component: () => import('@/views/goods/category/index.vue'),
         name: 'GoodsCategory',
         meta: { title: '分类管理' }
+      },
+      {
+        path: 'sku',
+        component: () => import('@/views/goods/sku/index.vue'),
+        name: 'GoodsSku',
+        meta: { title: 'SKU管理', permissions: ['goods:sku:list'] }
+      },
+      {
+        path: 'seckill',
+        component: () => import('@/views/goods/seckill/index.vue'),
+        name: 'GoodsSeckill',
+        meta: { title: '秒杀活动', permissions: ['goods:seckill:list'] }
+      },
+      {
+        path: 'banner',
+        component: () => import('@/views/goods/banner/index.vue'),
+        name: 'GoodsBanner',
+        meta: { title: 'Banner管理', permissions: ['goods:banner:list'] }
       }
     ]
   },
@@ -127,6 +145,18 @@ export const businessRoutes = [
         component: () => import('@/views/order/orderInfo/index.vue'),
         name: 'OrderInfo',
         meta: { title: '订单列表' }
+      },
+      {
+        path: 'afterSale',
+        component: () => import('@/views/order/afterSale/admin/index.vue'),
+        name: 'AfterSaleAdmin',
+        meta: { title: '售后审核', permissions: ['order:after-sale:list'] }
+      },
+      {
+        path: 'datareport',
+        component: () => import('@/views/order/datareport/index.vue'),
+        name: 'DataReport',
+        meta: { title: '数据报表', permissions: ['order:report:overview'] }
       }
     ]
   },
@@ -270,9 +300,11 @@ export const dynamicRoutes = [
   }
 ]
 
+import merchantRoutes from './merchant'
+
 const router = createRouter({
   history: createWebHistory(),
-  routes: constantRoutes,
+  routes: [...constantRoutes, ...merchantRoutes],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition

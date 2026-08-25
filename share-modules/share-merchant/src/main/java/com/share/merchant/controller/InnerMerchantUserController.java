@@ -26,9 +26,9 @@ public class InnerMerchantUserController {
     @Operation(summary = "商家登录校验（Feign）")
     @InnerAuth
     @PostMapping("/login")
-    public R<LoginUser> login(@RequestParam String username, @RequestParam String password) {
-        LoginUser loginUser = merchantUserService.login(username, password);
-        return R.ok(loginUser);
+    public R<MerchantUser> login(@RequestParam String username, @RequestParam String password) {
+        MerchantUser merchantUser = merchantUserService.login(username, password);
+        return R.ok(merchantUser);
     }
 
     @Operation(summary = "根据商家ID获取用户信息（Feign）")

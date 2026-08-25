@@ -21,9 +21,9 @@ public class SeckillActivity extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 活动ID */
-    @Schema(description = "活动ID")
-    private Long id;
+    ///** 活动ID */
+    //@Schema(description = "ID")
+    //private Long id;
 
     /** 活动名称 */
     @Schema(description = "活动名称")

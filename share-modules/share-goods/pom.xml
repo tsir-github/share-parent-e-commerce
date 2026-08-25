@@ -62,10 +62,16 @@
             <artifactId>sentinel-datasource-nacos</artifactId>
         </dependency>
 
-        <!-- Seata 分布式事务 -->
-        <dependency>
+        <!-- Seata 分布式事务 — ponytail: 无 @GlobalTransactional 调用，注释掉避免拦截本地 @Transactional -->
+        <!-- dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+        </dependency -->
+
+        <!-- RocketMQ 消息队列（秒杀异步下单） -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- share-api-goods -->
@@ -84,6 +90,12 @@
         <dependency>
             <groupId>com.share</groupId>
             <artifactId>share-api-order</artifactId>
+        </dependency>
+
+        <!-- share-api-merchant（商家 Feign 接口） -->
+        <dependency>
+            <groupId>com.share</groupId>
+            <artifactId>share-api-merchant</artifactId>
         </dependency>
     </dependencies>
 

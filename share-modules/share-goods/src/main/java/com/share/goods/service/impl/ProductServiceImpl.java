@@ -1,5 +1,6 @@
 package com.share.goods.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.share.common.core.constant.ProductStatus;
 import com.share.common.core.domain.R;
@@ -9,14 +10,16 @@ import com.share.goods.mapper.ProductMapper;
 import com.share.goods.service.IProductService;
 import com.share.order.api.RemoteOrderReviewService;
 import com.share.order.domain.vo.ReviewStatsDTO;
+import com.share.order.domain.vo.OrderReviewVO;
+import com.share.merchant.api.RemoteMerchantService;
+import com.share.common.core.constant.SecurityConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,12 +52,29 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
-    public List<Product> selectListedProducts(String name, Long categoryId) {
-        Product query = new Product();
-        query.setName(name);
-        query.setCategoryId(categoryId);
-        query.setStatus(ProductStatus.LISTED);
-        return productMapper.selectProductList(query);
+    public List<Product> selectListedProducts(String name, Long categoryId, String tag) {
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
+                .eq(Product::getStatus, ProductStatus.LISTED)
+                .eq(Product::getDelFlag, "0");
+        if (categoryId != null) {
+            wrapper.eq(Product::getCategoryId, categoryId);
+        }
+        if (name != null && !name.isEmpty()) {
+            wrapper.like(Product::getName, name);
+        }
+        if ("recommend".equals(tag)) {
+            wrapper.eq(Product::getIsRecommended, "1");
+        } else if ("hot".equals(tag)) {
+            wrapper.eq(Product::getIsHot, "1");
+        } else if ("new".equals(tag)) {
+            wrapper.eq(Product::getIsNew, "1");
+        }
+        // 加权排序：hot优先 → 销量 → recommended → 最新
+        wrapper.orderByDesc(Product::getIsHot)
+               .orderByDesc(Product::getSales)
+               .orderByDesc(Product::getIsRecommended)
+               .orderByDesc(Product::getCreateTime);
+        return baseMapper.selectList(wrapper);
     }
 
     @Override
@@ -111,5 +131,56 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             product.setAvgRating(0.0);
             product.setReviewCount(0);
         }
+    }
+
+    private final RemoteMerchantService remoteMerchantService;
+
+    @Override
+    public Object getMerchantInfo(Long merchantId) {
+        if (merchantId == null) return null;
+        try {
+            R<?> result = remoteMerchantService.get(merchantId, SecurityConstants.INNER);
+            return result != null ? result.getData() : null;
+        } catch (Exception e) {
+            log.warn("获取商家信息失败: merchantId={}", merchantId, e);
+            return null;
+        }
+    }
+
+    @Override
+    public List<OrderReviewVO> getProductReviews(Long productId) {
+        try {
+            R<List<OrderReviewVO>> result = remoteOrderReviewService.getProductReviews(productId);
+            return result != null ? result.getData() : null;
+        } catch (Exception e) {
+            log.warn("获取商品评价失败: productId={}", productId, e);
+            return null;
+        }
+    }
+
+    @Override
+    public List<Product> selectByMerchantId(Long merchantId, int limit) {
+        return baseMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Product>()
+                        .eq(Product::getMerchantId, merchantId)
+                        .eq(Product::getStatus, ProductStatus.LISTED)
+                        .eq(Product::getDelFlag, "0")
+                        .orderByDesc(Product::getCreateTime)
+                        .last("LIMIT " + limit));
+    }
+
+    @Override
+    public Map<String, Object> getMerchantStats(Long merchantId) {
+        List<Product> products = baseMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Product>()
+                        .eq(Product::getMerchantId, merchantId)
+                        .eq(Product::getStatus, ProductStatus.LISTED)
+                        .eq(Product::getDelFlag, "0"));
+        int productCount = products.size();
+        int totalSales = products.stream().mapToInt(p -> p.getSales() != null ? p.getSales() : 0).sum();
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("productCount", productCount);
+        stats.put("totalSales", totalSales);
+        return stats;
     }
 }

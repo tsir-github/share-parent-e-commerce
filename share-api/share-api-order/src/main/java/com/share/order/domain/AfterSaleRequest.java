@@ -22,6 +22,10 @@ public class AfterSaleRequest extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
+    /** 订单ID */
+    @Schema(description = "订单ID")
+    private Long orderId;
+
     /** 订单号 */
     @Schema(description = "订单号")
     private String orderNo;

@@ -7,6 +7,7 @@ import com.share.coupon.domain.vo.UsableCouponVO;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用户领取记录Service接口
@@ -79,4 +80,7 @@ public interface ICouponUserService extends IService<CouponUser> {
      * @param couponUserId 用户领取记录ID
      */
     void consumeCoupon(Long couponUserId);
+
+    /** 查询优惠券详情（含模板折扣信息） */
+    Map<String, Object> getCouponDetail(Long couponUserId);
 }

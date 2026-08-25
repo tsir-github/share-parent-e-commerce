@@ -28,19 +28,19 @@
             <img :src="userStore.avatar" class="user-avatar" />
             <el-icon><caret-bottom /></el-icon>
           </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <router-link to="/user/profile">
-                <el-dropdown-item>个人中心</el-dropdown-item>
-              </router-link>
-              <el-dropdown-item command="setLayout" v-if="settingsStore.showSettings">
-                <span>布局设置</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
-                <span>退出登录</span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
+           <template #dropdown>
+             <el-dropdown-menu>
+               <router-link :to="isMerchant ? '/merchant/profile' : '/user/profile'">
+                 <el-dropdown-item>个人中心</el-dropdown-item>
+               </router-link>
+               <el-dropdown-item command="setLayout" v-if="settingsStore.showSettings && !isMerchant">
+                 <span>布局设置</span>
+               </el-dropdown-item>
+               <el-dropdown-item divided command="logout">
+                 <span>退出登录</span>
+               </el-dropdown-item>
+             </el-dropdown-menu>
+           </template>
         </el-dropdown>
       </div>
     </div>
@@ -60,10 +60,13 @@ import RuoYiDoc from '@/components/RuoYi/Doc'
 import useAppStore from '@/store/modules/app'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
+import { merchantLogout } from '@/api/merchant/auth'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
+
+const isMerchant = computed(() => !!localStorage.getItem('merchantInfo'))
 
 function toggleSideBar() {
   appStore.toggleSideBar()
@@ -88,9 +91,23 @@ function logout() {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    userStore.logOut().then(() => {
-      location.href = '/index';
-    })
+    if (isMerchant.value) {
+      // 商家退出：调用商家登出 API
+      merchantLogout().then(() => {
+        localStorage.removeItem('merchantInfo')
+        userStore.token = ''
+        userStore.roles = []
+        location.href = '/merchant/login'
+      }).catch(() => {
+        localStorage.removeItem('merchantInfo')
+        location.href = '/merchant/login'
+      })
+    } else {
+      // 管理员退出
+      userStore.logOut().then(() => {
+        location.href = '/index';
+      })
+    }
   }).catch(() => { });
 }
 

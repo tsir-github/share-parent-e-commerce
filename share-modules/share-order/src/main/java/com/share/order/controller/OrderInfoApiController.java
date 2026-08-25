@@ -111,6 +111,14 @@ public class OrderInfoApiController extends BaseController {
         return R.ok();
     }
 
+    @Operation(summary = "模拟支付成功（开发环境）")
+    @RequiresLogin
+    @PostMapping("/mockPay/{orderNo}")
+    public R<Void> mockPay(@PathVariable @NotBlank String orderNo) {
+        orderInfoService.processPaySuccess(orderNo, "mock_txn_" + System.currentTimeMillis());
+        return R.ok();
+    }
+
     @Operation(summary = "获取订单统计")
     @RequiresLogin
     @RequiresPermissions("order:info:count")

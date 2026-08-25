@@ -65,11 +65,13 @@
             <artifactId>rocketmq-spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Seata 分布式事务 -->
-        <dependency>
+        <!-- Seata 分布式事务 — 
+             ponytail: share-order 无 @GlobalTransactional 调用，移除依赖避免本地 @Transactional 被 Seata 拦截。 
+             需要分布式事务时取消注释。 -->
+        <!-- dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
-        </dependency>
+        </dependency -->
 
         <!-- Redisson 分布式锁 (Redis Sentinel) -->
         <dependency>

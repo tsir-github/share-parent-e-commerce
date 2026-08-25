@@ -3,6 +3,7 @@ package com.share.order.controller;
 import com.share.common.core.domain.R;
 import com.share.common.security.annotation.InnerAuth;
 import com.share.order.domain.vo.ReviewStatsDTO;
+import com.share.order.domain.vo.OrderReviewVO;
 import com.share.order.service.IOrderReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,5 +38,12 @@ public class InnerOrderReviewController {
     @PostMapping("/stats/batch")
     public R<Map<Long, ReviewStatsDTO>> getReviewStatsBatch(@RequestBody List<Long> productIds) {
         return R.ok(orderReviewService.getReviewStatsBatch(productIds));
+    }
+
+    @Operation(summary = "商品评价列表（内部Feign）")
+    @InnerAuth
+    @GetMapping("/product/{productId}")
+    public R<List<OrderReviewVO>> getProductReviews(@PathVariable Long productId) {
+        return R.ok(orderReviewService.getProductReviews(productId));
     }
 }

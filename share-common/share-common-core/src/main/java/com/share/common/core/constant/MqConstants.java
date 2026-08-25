@@ -18,4 +18,13 @@ public interface MqConstants {
 
     /** 退款成功 → 订单状态变更 */
     String REFUND_SUCCESS_TOPIC = "order-refund-success";
+
+    /** 商家新订单通知 */
+    String ORDER_MERCHANT_NOTIFY_TOPIC = "order-merchant-notify";
+
+    /** 秒杀异步下单 */
+    String SECKILL_ORDER_CREATE_TOPIC = "seckill-order-create";
+
+    /** 缓存失效延迟删除（Consumer 收到后删 Redis key，延迟级别3=10s，兜底双删失败） */
+    String CACHE_INVALIDATE_TOPIC = "cache-invalidate";
 }

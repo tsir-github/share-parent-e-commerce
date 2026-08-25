@@ -24,14 +24,14 @@
                      THEN COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) / COUNT(*)
                      ELSE 0 END                                                    AS avg,
                 COALESCE(SUM(refund_amount), 0)                                    AS ref
-            FROM share_order.order_info
+            FROM `share-order`.order_info
             WHERE DATE(create_time) = CURDATE() AND del_flag = '0'
         ) t1 ON 1=1
         LEFT JOIN (
             SELECT
                 COUNT(*)                                                           AS cnt,
                 COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev
-            FROM share_order.order_info
+            FROM `share-order`.order_info
             WHERE YEARWEEK(create_time, 1) = YEARWEEK(CURDATE(), 1)
               AND del_flag = '0'
         ) t2 ON 1=1
@@ -39,7 +39,7 @@
             SELECT
                 COUNT(*)                                                           AS cnt,
                 COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev
-            FROM share_order.order_info
+            FROM `share-order`.order_info
             WHERE DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
               AND del_flag = '0'
         ) t3 ON 1=1
@@ -47,7 +47,7 @@
             SELECT
                 COUNT(*)                                                           AS cnt,
                 COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS rev
-            FROM share_order.order_info
+            FROM `share-order`.order_info
             WHERE del_flag = '0'
         ) t4 ON 1=1
     </select>
@@ -58,7 +58,7 @@
             DATE_FORMAT(create_time, '%Y-%m-%d') AS date,
             COUNT(*)                             AS orderCount,
             COALESCE(SUM(CASE WHEN pay_status = '1' THEN pay_amount ELSE 0 END), 0) AS revenue
-        FROM share_order.order_info
+        FROM `share-order`.order_info
         WHERE del_flag = '0'
             AND create_time &gt;= #{startDate}
             AND create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
@@ -73,8 +73,8 @@
             oi.product_name  AS productName,
             SUM(oi.quantity) AS salesCount,
             COALESCE(SUM(oi.total_amount), 0) AS revenue
-        FROM share_order.order_item oi
-        JOIN share_order.order_info o ON oi.order_id = o.id AND o.del_flag = '0'
+        FROM `share-order`.order_item oi
+        JOIN `share-order`.order_info o ON oi.order_id = o.id AND o.del_flag = '0'
         WHERE oi.del_flag = '0'
           AND o.pay_status = '1'
           <if test="startDate != null and startDate != ''">
@@ -100,9 +100,9 @@
             COALESCE(mi.name, '未知商家') AS merchantName,
             COUNT(DISTINCT oi.order_id) AS orderCount,
             COALESCE(SUM(oi.total_amount), 0) AS revenue
-        FROM share_order.order_item oi
-        JOIN share_order.order_info o ON oi.order_id = o.id AND o.del_flag = '0'
-        LEFT JOIN share_merchant.merchant_info mi ON oi.merchant_id = mi.id
+        FROM `share-order`.order_item oi
+        JOIN `share-order`.order_info o ON oi.order_id = o.id AND o.del_flag = '0'
+        LEFT JOIN `share-merchant`.merchant_info mi ON oi.merchant_id = mi.id
         WHERE oi.del_flag = '0'
           AND o.pay_status = '1'
           <if test="startDate != null and startDate != ''">
@@ -128,7 +128,7 @@
             END           AS payWayName,
             COUNT(*)      AS orderCount,
             COALESCE(SUM(amount), 0) AS amount
-        FROM share_payment.payment_info
+        FROM `share-payment`.payment_info
         WHERE del_flag = '0'
           AND payment_status = 1  /* 支付成功 */
           <if test="startDate != null and startDate != ''">
